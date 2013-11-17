@@ -1,0 +1,22 @@
+/* 
+    Document   : fonts
+    Created on : 2012-03-31, 15:30:46
+    Author     : jblew
+    Description:
+        Font imports
+*/
+
+@font-face {
+    font-family: "Alhambra";
+    src: url(../fonts/alhambra/alhambra.ttf);
+}
+
+@font-face {
+    font-family: "Alhad";
+    src: url(../fonts/alhambra/alhad.ttf);
+}
+
+@font-face {
+    font-family: "UnZialish";
+    src: url(../fonts/UnZialish.ttf);
+}

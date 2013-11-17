@@ -1,0 +1,13 @@
+/* 
+    Document   : general
+    Created on : 2012-03-31, 15:36:35
+    Author     : jblew
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+h1 {
+    font-size: 2.5em;
+    padding-bottom: 10px;
+    color: white;
+}

@@ -1,0 +1,122 @@
+/* 
+    Document   : ui.css
+    Created on : 2012-03-31, 15:24:52
+    Author     : jblew
+    Description:
+        Main ui of AlternativMUD JsClient
+*/
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: black url("../img/patterns/dark-leaves.png");
+    color: white !important;
+}
+.panel-container-layer {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.fire-bg {
+    background: url("../img/fire_logo.png") bottom center no-repeat;
+    opacity: 0.8;
+    width: 100%;
+    height: 100%;
+    position:absolute;
+    right:0;
+    top:0;
+    /*margin-right: -376px;*/
+    z-index: 2;
+}
+
+#top-right-menu {
+    background: url("../img/right-sphere.png") top right no-repeat;
+    width: 376px;
+    height: 381px;
+    position:absolute;
+    right:0;
+    top:0;
+    /*margin-right: -376px;*/
+    z-index: 800;
+}
+
+.user-menu {
+    position: absolute;
+    top: 25px;
+    right: 50px;
+    z-index: 810;
+}
+
+.user-menu-icon {
+    background: url("../img/human.120x120.jpg") no-repeat;
+    width: 120px;
+    height: 120px;
+    position: relative;
+}
+
+.user-menu-icon p {
+    background: white;
+    opacity: 0.5;
+    margin: 0;
+    padding: 10px;
+    color: black;
+    font-weight: bold;
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    
+}
+
+#main-game-panel-container {
+    /*background: url("../img/top-line.png") repeat-x;*/
+    min-height: 137px;
+}
+
+.sphere-menu-overlay {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100%;
+    height:100%;
+    text-align:center;
+    z-index: 1000;
+    background: url(../img/sphere-black.png) no-repeat center center;
+}
+
+.sphere-menu-overlay .sphere {
+    width:400px;
+    height:400px;
+    position:absolute;
+    left:50%;
+    top:50%;
+    margin:-200px 0 0 -200px;
+    color: black;
+}
+
+.alert-error {
+    background: url(../img/patterns/50p/cranberry.gif) !important;
+    color: white;
+    font-weight: bold;
+}
+
+.alert-success {
+    background: url(../img/patterns/50p/camellia.gif) !important;
+    color: white;
+    font-weight: bold;
+}
+
+.alert-info {
+    background: url(../img/patterns/50p/iridescent.gif) !important;
+    color: white;
+    font-weight: bold;
+}
+
+.table-bg {
+    background: url(../img/patterns/50p/sand-blossom.gif) !important;
+}
+

@@ -1,0 +1,10 @@
+nbproject/
+build/
+target/
+.svn/
+.hg/
+/alternativmud-server/data/
+tags/
+trunk/
+wiki/
+*~

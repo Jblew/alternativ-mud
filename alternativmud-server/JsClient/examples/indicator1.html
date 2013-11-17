@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Raphaël · Polar Clock</title>
+        <style>
+            body {
+                background: #333;
+                color: #fff;
+                font: 300 100.1% "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+            }
+            #holder {
+                height: 480px;
+                left: 50%;
+                margin: -240px 0 0 -320px;
+                position: absolute;
+                top: 50%;
+                width: 640px;
+            }
+            #copy {
+                bottom: 0;
+                font: 300 .7em "Helvetica Neue", Helvetica, "Arial Unicode MS", Arial, sans-serif;
+                position: absolute;
+                right: 1em;
+                text-align: right;
+            }
+            #copy a {
+                color: #fff;
+            }
+        </style>
+        <script src="../lib/js/raphael-min.js"></script>
+        <script>
+            function updateVal(value, hand, radius) {                    
+                hand.animate({arc: [value, 100, radius]}, 750, "elastic");
+            }
+            
+            var sec;
+            function g() {
+                updateVal(66, sec, 100);
+            }
+            function h() {
+                updateVal(25, sec, 100);
+            }
+            
+            window.onload = function () {
+                var r = Raphael("holder", 600, 600),
+                R = 100,
+                param = {stroke: "#fff", "stroke-width": 10},
+                marksAttr = {fill: "#444", stroke: "none"};
+                // Custom Attribute
+                r.customAttributes.arc = function (value, total, radius) {
+                    var alpha = 360 / total * value,
+                    a = (90 - alpha) * Math.PI / 180,
+                    x = 300 + radius * Math.cos(a),
+                    y = 300 - radius * Math.sin(a),
+                    path;
+                    path = [["M", 300, 300 - radius], ["A", radius, radius, 0, +(alpha > 180), 1, x, y]];
+                    return {path: path};
+                };
+
+                drawMarks(300, 300, 200, 60);
+                sec = r.path().attr(param).attr({arc: [0, 60, 100]});
+
+                function drawMarks(centerX, centerY, radius, count) {
+                    out = r.set();
+                    for (var value = 0; value < count; value++) {
+                        var alpha = 360 / count * value,
+                        a = (90 - alpha) * Math.PI / 180,
+                        x = centerX + radius * Math.cos(a),
+                        y = centerY - radius * Math.sin(a);
+                        out.push(r.circle(x, y, 2).attr(marksAttr));
+                    }
+                    return out;
+                }
+
+                updateVal(33, sec, 100);
+                setTimeout("g();", 1000);
+                setTimeout("h();", 2000);
+            };
+        </script>
+        <style media="screen">
+            #holder {
+                height: 600px;
+                margin: -300px 0 0 -300px;
+                width: 600px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="holder"></div>
+        <p id="copy">Demo of <a href="http://raphaeljs.com/">Raphaël</a>—JavaScript Vector Library</p>
+    </body>
+</html>

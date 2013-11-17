@@ -1,0 +1,108 @@
+/* 
+    Document   : console
+    Created on : 2012-04-05, 13:12:53
+    Author     : jblew
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+root { 
+    display: block;
+}
+
+.console-overlay {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width:100%;
+    height:100%;
+    text-align:center;
+    z-index: 1000;
+}
+
+.console-overlay .console {
+    width:400px;
+    height:400px;
+    position:absolute;
+    left:50%;
+    top:50%;
+    margin:-200px 0 0 -200px;
+    color: white;
+    background: black;
+    border: 5px solid white;
+    overflow-x: auto;
+    text-align: left;
+}
+
+.console-overlay .console .v {
+    color: #555753;
+}
+
+.console-overlay .console .vv {
+    color: #2E3436;
+    font-weight: bold;
+}
+
+.console-overlay .console .r {
+    color: #CC0000;
+}
+
+.console-overlay .console .rr {
+    color: #EF2929;
+    font-weight: bold;
+}
+
+.console-overlay .console .g {
+    color: #4E9A06;
+}
+
+.console-overlay .console .gg {
+    color: #8AE234;
+    font-weight: bold;
+}
+
+.console-overlay .console .y {
+    color: #C4A000;
+}
+
+.console-overlay .console .yy {
+    color: #FCE94F;
+    font-weight: bold;
+}
+
+.console-overlay .console .b {
+    color: #3465A4;
+}
+
+.console-overlay .console .bb {
+    color: #729FCF;
+    font-weight: bold;
+}
+
+.console-overlay .console .m {
+    color: #75507B;
+}
+
+.console-overlay .console .mm {
+    color: #AD7FA8;
+    font-weight: bold;
+}
+
+.console-overlay .console .c {
+    color: #06989A;
+}
+
+.console-overlay .console .cc {
+    color: #34E2E2;
+    font-weight: bold;
+}
+
+.console-overlay .console .x {
+    color: #D3D7CF;
+}
+
+.console-overlay .console .xx {
+    color: #EEEEEC;
+    font-weight: bold;
+}
+
