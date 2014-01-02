@@ -60,7 +60,7 @@ public class RemoteAdminServer implements ExternalService {
         tcpBootstrap.setOption("reuseAddress", true);
 
         // Bind and start to accept incoming connections.
-        tcpBootstrap.bind(new InetSocketAddress("0.0.0.0", 9999));
+        tcpBootstrap.bind(new InetSocketAddress("0.0.0.0", getPort()));
 
         App.getApp().getServiceManager().register(RemoteAdminServer.class, this);
     }
