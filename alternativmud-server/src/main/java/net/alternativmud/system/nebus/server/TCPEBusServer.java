@@ -127,6 +127,11 @@ public class TCPEBusServer implements ExternalService {
     public String getDescription() {
         return "TCP EventBus Server";
     }
+    
+    @Override
+    public ExternalService.ProtocolType getProtocolType() {
+        return ExternalService.ProtocolType.TCP;
+    }
 
     public Map<Channel, ChannelBus> getBuses() {
         return Collections.unmodifiableMap(buses);

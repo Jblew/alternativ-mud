@@ -87,6 +87,11 @@ public class RemoteAdminServer implements ExternalService {
         return "Remote admin server";
     }
 
+    @Override
+    public ExternalService.ProtocolType getProtocolType() {
+        return ExternalService.ProtocolType.TCP;
+    }
+
     /**
      * Ta klasa jest prywatna, bo nie używamy jej na zewnątrz.
      */

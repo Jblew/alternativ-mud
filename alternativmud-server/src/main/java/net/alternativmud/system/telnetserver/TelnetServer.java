@@ -100,6 +100,11 @@ public class TelnetServer implements ExternalService {
     public String getDescription() {
         return "Telnet server";
     }
+    
+    @Override
+    public ExternalService.ProtocolType getProtocolType() {
+        return ExternalService.ProtocolType.TCP;
+    }
 
     private class Handler extends SimpleChannelUpstreamHandler {
         /*

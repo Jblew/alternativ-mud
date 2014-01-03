@@ -11,4 +11,9 @@ package net.alternativmud.framework;
 public interface ExternalService extends Service {
     public int getPort();
     public boolean isBind();
+    public ProtocolType getProtocolType();
+    
+    public enum ProtocolType {
+        TCP, UDP
+    }
 }

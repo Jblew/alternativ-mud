@@ -128,6 +128,11 @@ public class WSEBusServer implements ExternalService {
     public String getDescription() {
         return "WS EventBus Server";
     }
+    
+    @Override
+    public ExternalService.ProtocolType getProtocolType() {
+        return ExternalService.ProtocolType.TCP;
+    }
 
     public Map<Channel, ChannelBus> getBuses() {
         return Collections.unmodifiableMap(buses);
