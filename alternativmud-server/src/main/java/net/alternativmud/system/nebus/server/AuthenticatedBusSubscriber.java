@@ -7,10 +7,15 @@ package net.alternativmud.system.nebus.server;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import java.util.List;
+import java.util.NoSuchElementException;
 import net.alternativmud.App;
+import net.alternativmud.framework.Service;
+import net.alternativmud.game3d.UnityScenes;
 import net.alternativmud.logic.User;
 import net.alternativmud.logic.game.Gameplay;
 import net.alternativmud.logic.world.characters.UCharacter;
+import net.alternativmud.system.unityserver.Unity3DModeSubscriber;
+import net.alternativmud.system.unityserver.UnityServer;
 
 /**
  *
@@ -41,6 +46,24 @@ public class AuthenticatedBusSubscriber {
     @Subscribe
     public void getTimeMachine(GetTimeMachine evt) {
         ebus.post(App.getApp().getWorld().getTimeMachine());
+    }
+    
+    @Subscribe
+    public void enterUnity3DMode(EnterUnity3DMode evt) {
+        try {
+            byte sceneID = UnityScenes.getSceneID(evt.getSceneName());
+            Service service =  App.getApp().getServiceManager().getService(UnityServer.class);
+            if(service != null && service instanceof UnityServer) {
+                UnityServer srv = (UnityServer) service;
+                UCharacter character = App.getApp().getWorld().getCharactersManager().getCharacter(evt.getCharacterName());
+                ebus.register(new Unity3DModeSubscriber(srv, ebus, user, character, sceneID));
+            }
+            else {
+                ebus.post(new Unity3DModeEnterFailed("Unity server is not registered in ServiceManager"));
+            }
+        } catch(NoSuchElementException e) {
+            ebus.post(new Unity3DModeEnterFailed("No such scene on server"));
+        }
     }
 
     public static class GetCharacters {
@@ -100,4 +123,50 @@ public class AuthenticatedBusSubscriber {
     }
     
     public static class GetTimeMachine {}
+    
+    public static class EnterUnity3DMode {
+        private String sceneName;
+        private String characterName;
+
+        public EnterUnity3DMode() {}
+        
+        public EnterUnity3DMode(String sceneName, String characterName) {
+            this.sceneName = sceneName;
+            this.characterName = characterName;
+        }
+        
+        public void setSceneName(String sceneName) {
+            this.sceneName = sceneName;
+        }
+
+        public String getSceneName() {
+            return sceneName;
+        }
+
+        public String getCharacterName() {
+            return characterName;
+        }
+
+        public void setCharacterName(String characterName) {
+            this.characterName = characterName;
+        }
+    }
+    
+    public static class Unity3DModeEnterFailed {
+        private String message;
+        
+        public Unity3DModeEnterFailed() {}
+
+        public Unity3DModeEnterFailed(String message) {
+            this.message = message;
+        }
+        
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+    }
 }

@@ -42,6 +42,7 @@ public class ServiceManager {
     /**
      * Sprawdza czy usługa jest zarejestrowana
      * @param cls - Klasa interfejsu usługi
+     * @return true if service is registered, false otherwise
      */
     public synchronized boolean isRegistered(Class<? extends Service> cls) {
         return services.containsKey(cls.getName());

@@ -72,6 +72,7 @@ public class App {
         lifecycle.registerBootstrapTask(new StartRemoteAdminServer());
         lifecycle.registerBootstrapTask(new StartTelnetServer());
         lifecycle.registerBootstrapTask(new StartEBusServer());
+        lifecycle.registerBootstrapTask(new StartUnityServer());
         lifecycle.registerBootstrapTask(new StartConsoleReader());
         
 
