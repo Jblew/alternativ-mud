@@ -11,11 +11,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +37,12 @@ import org.jboss.netty.channel.*;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.frame.LengthFieldBasedFrameDecoder;
 import org.jboss.netty.handler.codec.frame.LengthFieldPrepender;
+import org.jboss.netty.handler.timeout.IdleState;
+import org.jboss.netty.handler.timeout.IdleStateAwareChannelHandler;
+import org.jboss.netty.handler.timeout.IdleStateEvent;
+import org.jboss.netty.handler.timeout.IdleStateHandler;
+import org.jboss.netty.util.HashedWheelTimer;
+import org.jboss.netty.util.Timer;
 
 /**
  * Ten serwer tworzy dla każdego połączenia Szynę Wydarzeń (EventBus), która
@@ -54,7 +62,9 @@ public class TCPEBusServer implements ExternalService {
     }
     private final Map<Channel, ChannelBus> buses = Collections.synchronizedMap(new HashMap<Channel, ChannelBus>());
     private final ExecutorService busExecutor = Executors.newCachedThreadPool(new NamingThreadFactory("TCP-EBusServer-bus-reader"));
+    private final ScheduledExecutorService busChecker = Executors.newSingleThreadScheduledExecutor(new NamingThreadFactory("TCP_EBusServer-bus-checker"));
     private final EventBus globalEBus;
+    private final Timer timer = new HashedWheelTimer();
     private ServerBootstrap tcpBootstrap;
 
     public TCPEBusServer(EventBus globalEBus) {
@@ -69,12 +79,30 @@ public class TCPEBusServer implements ExternalService {
 
         // Set up the pipeline factory.
         tcpBootstrap.setPipelineFactory(new ChannelPipelineFactory() {//Ta anonimowa klasa jest odpowiedzialna za tworzenie nowych gniazd
+            private final ChannelHandler idleStateHandler = new IdleStateHandler(timer, 15, 15, 0);
 
             @Override
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipeline = Channels.pipeline(); //Tworzymy nowe gniazdo
                 pipeline.addLast("framer", new LengthFieldBasedFrameDecoder(8192, 0, 4, 0, 0));
                 pipeline.addLast("handler", new Handler());//Handler jest tworzony dla każdego nowego wątku i obsługuje go potem.
+                pipeline.addLast("idleStateHandler", idleStateHandler);
+                pipeline.addLast("myPipelineHandler", new IdleStateAwareChannelHandler() {
+                    @Override
+                    public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) {
+                        if (e.getState() == IdleState.READER_IDLE) {
+                            e.getChannel().close();
+                            if (buses.containsKey(e.getChannel())) {
+                                buses.get(e.getChannel()).close();
+                                buses.remove(e.getChannel());
+                            }
+                        } else if (e.getState() == IdleState.WRITER_IDLE) {
+                            if (buses.containsKey(e.getChannel())) {
+                                buses.get(e.getChannel()).post(new Ping());
+                            }
+                        }
+                    }
+                });
                 return pipeline;
             }
         });
@@ -97,6 +125,8 @@ public class TCPEBusServer implements ExternalService {
             bus.close();
         }
 
+        timer.stop();
+
         busExecutor.shutdown();
         boolean finished = false;
         try {
@@ -106,7 +136,18 @@ public class TCPEBusServer implements ExternalService {
         if (!finished) {
             busExecutor.shutdownNow();
         }
+
+        busChecker.shutdown();
+        finished = false;
+        try {
+            finished = busChecker.awaitTermination(150, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ex) {
+        }
+        if (!finished) {
+            busChecker.shutdownNow();
+        }
         
+
         if (tcpBootstrap != null) {
             tcpBootstrap.releaseExternalResources();
             tcpBootstrap = null;
@@ -127,7 +168,7 @@ public class TCPEBusServer implements ExternalService {
     public String getDescription() {
         return "TCP EventBus Server";
     }
-    
+
     @Override
     public ExternalService.ProtocolType getProtocolType() {
         return ExternalService.ProtocolType.TCP;
@@ -149,7 +190,11 @@ public class TCPEBusServer implements ExternalService {
 
         @Override
         public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-            buses.get(e.getChannel()).close();
+            Logger.getLogger(getClass().getName()).log(Level.INFO, "Channel disconnected");
+            if (buses.containsKey(e.getChannel())) {
+                buses.get(e.getChannel()).close();
+                buses.remove(e.getChannel());
+            }
         }
 
         /**
@@ -165,7 +210,7 @@ public class TCPEBusServer implements ExternalService {
                 byte[] classNameBytes = new byte[buf.readInt()];//4
                 buf.readBytes(classNameBytes);
                 String className = new String(classNameBytes, Charsets.UTF_8);
-                
+
                 byte[] bytes = new byte[length-classNameBytes.length-4];
                 buf.readBytes(bytes);
                 try {
@@ -187,6 +232,10 @@ public class TCPEBusServer implements ExternalService {
         public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
             Logger.getLogger(RemoteAdminServer.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
             e.getChannel().close();
+            if (buses.containsKey(e.getChannel())) {
+                buses.get(e.getChannel()).close();
+                buses.remove(e.getChannel());
+            }
         }
 
         @Override
@@ -228,22 +277,22 @@ public class TCPEBusServer implements ExternalService {
             if (!(o instanceof DeadEvent)) {
                 //System.out.println("Server.Sending(" + o.getClass().getName() + "): " + o.toString());
                 try {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                JSON_MAPPER.writeValue(baos, o);
-                byte[] bytes = baos.toByteArray();
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    JSON_MAPPER.writeValue(baos, o);
+                    byte[] bytes = baos.toByteArray();
                 byte [] classNameBytes = o.getClass().getName().getBytes();
                 ChannelBuffer buf = ChannelBuffers.buffer(bytes.length + classNameBytes.length+8);
                 buf.writeInt(buf.capacity()-4);
-                buf.writeInt(classNameBytes.length);
-                buf.writeBytes(classNameBytes);
-                buf.writeBytes(bytes);
-                //System.out.println("Written msg; contentLength="+bytes.length+"; classNameBytes.length="+classNameBytes.length
-                //        +"; buf.capacity()"+buf.capacity());
-                
-                channel.write(buf);
-            } catch (Exception ex) {
-                Logger.getLogger(TCPEBusServer.class.getName()).log(Level.SEVERE, "Exception in server.post", ex);
-            }
+                    buf.writeInt(classNameBytes.length);
+                    buf.writeBytes(classNameBytes);
+                    buf.writeBytes(bytes);
+                    //System.out.println("Written msg; contentLength="+bytes.length+"; classNameBytes.length="+classNameBytes.length
+                    //        +"; buf.capacity()"+buf.capacity());
+
+                    channel.write(buf);
+                } catch (Exception ex) {
+                    Logger.getLogger(TCPEBusServer.class.getName()).log(Level.SEVERE, "Exception in server.post", ex);
+                }
             }
         }
 
@@ -275,5 +324,9 @@ public class TCPEBusServer implements ExternalService {
             this.ebus = ebus;
             this.addr = addr;
         }
+    }
+
+    public static class Ping {
+
     }
 }
