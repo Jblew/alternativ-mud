@@ -93,9 +93,19 @@ public class User {
                 u2.setLogin("tester");
                 u2.setPassword("tester");
                 list.add(u2);
+                
+                User mob_statue = new User();
+                mob_statue.setLogin("mob_statue");
+                mob_statue.setPassword("mob_statue");
+                list.add(mob_statue);
+                
+                User mob_ninja = new User();
+                mob_ninja.setLogin("mob_ninja");
+                mob_ninja.setPassword("mob_ninja");
+                list.add(mob_ninja);
 
                 Logger.getLogger(User.Manager.class.getName())
-                        .info("Added 'admin' and 'tester' users to database.");
+                        .info("Added 'admin', 'tester', 'mob_statue', 'mob_ninja', users to database.");
             } else {
                 Logger.getLogger(User.Manager.class.getName())
                         .log(Level.INFO, "Users count: {0}", list.size());

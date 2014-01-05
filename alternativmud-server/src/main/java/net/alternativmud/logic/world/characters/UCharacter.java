@@ -185,6 +185,16 @@ public class UCharacter {
                 c3.setRace(Race.ELF);
                 c3.setOwnerName("tester");
                 list.add(c3);
+                
+                UCharacter c4 = new UCharacter();
+                c4.setName("mob_statue");
+                c4.setOwnerName("mob_statue");
+                list.add(c4);
+                
+                UCharacter c5 = new UCharacter();
+                c5.setName("mob_ninja");
+                c5.setOwnerName("mob_ninja");
+                list.add(c5);
             }
         }
         

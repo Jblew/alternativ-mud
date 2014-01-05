@@ -150,8 +150,7 @@ public class App {
     }
 
     /**
-     * Ta metoda jest używana, jeżeli chcemy wystartować aplikację z wewnątrz
-     * innej aplikacji.
+     * This metod allows to start this App inside other app.
      */
     public static App embeddedInit() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, IOException {
         INSTANCE = new App();
