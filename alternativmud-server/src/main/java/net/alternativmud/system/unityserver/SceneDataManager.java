@@ -36,6 +36,7 @@ class SceneDataManager {
         this.sceneID = sceneId;
 
         idManager.clear();
+        idManager.set(0);
     }
 
     public synchronized byte addCharacter(String name) {
