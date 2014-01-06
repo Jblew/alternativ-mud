@@ -8,12 +8,14 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.logging.Logger;
 import net.alternativmud.App;
 import net.alternativmud.framework.Service;
 import net.alternativmud.game3d.UnityScenes;
 import net.alternativmud.logic.User;
 import net.alternativmud.logic.game.Gameplay;
 import net.alternativmud.logic.world.characters.UCharacter;
+import net.alternativmud.system.nebus.server.TCPEBusServer.EBusClosed;
 import net.alternativmud.system.unityserver.Unity3DModeSubscriber;
 import net.alternativmud.system.unityserver.UnityServer;
 
@@ -65,6 +67,18 @@ public class AuthenticatedBusSubscriber {
             ebus.post(new Unity3DModeEnterFailed("No such scene on server"));
         }
     }
+    
+    @Subscribe 
+    public void logout(Logout evt) {
+        Logger.getLogger(getClass().getName()).info("User "+user.getLogin()+" logged out. Unregistering AuthenticatedBusSubscriber");
+        ebus.unregister(this);
+    }
+    
+    @Subscribe 
+    public void ebusClosed(EBusClosed evt) {
+        Logger.getLogger(getClass().getName()).info("Ebus of "+user.getLogin()+" closed. Unregistering AuthenticatedBusSubscriber");
+        ebus.unregister(this);
+    }
 
     public static class GetCharacters {
     }
@@ -107,6 +121,10 @@ public class AuthenticatedBusSubscriber {
 
     }
 
+    public static class Logout {
+        
+    }
+    
     public static class GameplayStarted {
     }
 

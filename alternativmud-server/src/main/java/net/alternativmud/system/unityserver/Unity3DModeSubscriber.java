@@ -7,8 +7,11 @@
 package net.alternativmud.system.unityserver;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import java.util.logging.Logger;
 import net.alternativmud.logic.User;
 import net.alternativmud.logic.world.characters.UCharacter;
+import net.alternativmud.system.nebus.server.TCPEBusServer;
 
 /**
  *
@@ -32,6 +35,13 @@ public class Unity3DModeSubscriber {
         int port = unityServer.getPort()+sceneID;
         
         ebus.post(new SceneEnterSucceeded(port, characterID));
+    }
+    
+    @Subscribe 
+    public void ebusClosed(TCPEBusServer.EBusClosed evt) {
+        Logger.getLogger(getClass().getName()).info("Ebus of "+user.getLogin()+":"+character.getName()+" closed. Unregistering Unity3DModeSubscriber, removing character from UnityServer");
+        unityServer.removeCharacterFromScene(sceneID, character.getName());
+        ebus.unregister(this);
     }
     
     public static class SceneEnterSucceeded {
