@@ -9,6 +9,7 @@ package net.alternativmud;
  * @author jblew
  */
 public class StaticConfig {
+    public static final long TCP_EBUS_TIMEOUT_MS = 1/*m*/*60/*s*/*1000/*ms*/;
     private StaticConfig() {}
         
     public static final String [] ENITY_CLASSES = new String [] {

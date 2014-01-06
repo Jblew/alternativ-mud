@@ -15,6 +15,7 @@ import java.nio.channels.ClosedChannelException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.App;
+import net.alternativmud.StaticConfig;
 import net.alternativmud.framework.ExternalService;
 import net.alternativmud.lib.NamingThreadFactory;
 import net.alternativmud.lib.debug.BusLogger;
@@ -63,8 +65,8 @@ public class TCPEBusServer implements ExternalService {
     private final Map<Channel, ChannelBus> buses = Collections.synchronizedMap(new HashMap<Channel, ChannelBus>());
     private final ExecutorService busExecutor = Executors.newCachedThreadPool(new NamingThreadFactory("TCP-EBusServer-bus-reader"));
     private final ScheduledExecutorService busChecker = Executors.newSingleThreadScheduledExecutor(new NamingThreadFactory("TCP_EBusServer-bus-checker"));
+    private final Map<Channel, Long> busTimers = Collections.synchronizedMap(new WeakHashMap<Channel, Long>());
     private final EventBus globalEBus;
-    private final Timer timer = new HashedWheelTimer();
     private ServerBootstrap tcpBootstrap;
 
     public TCPEBusServer(EventBus globalEBus) {
@@ -79,30 +81,12 @@ public class TCPEBusServer implements ExternalService {
 
         // Set up the pipeline factory.
         tcpBootstrap.setPipelineFactory(new ChannelPipelineFactory() {//Ta anonimowa klasa jest odpowiedzialna za tworzenie nowych gniazd
-            private final ChannelHandler idleStateHandler = new IdleStateHandler(timer, 15, 15, 0);
 
             @Override
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipeline = Channels.pipeline(); //Tworzymy nowe gniazdo
                 pipeline.addLast("framer", new LengthFieldBasedFrameDecoder(8192, 0, 4, 0, 0));
                 pipeline.addLast("handler", new Handler());//Handler jest tworzony dla każdego nowego wątku i obsługuje go potem.
-                pipeline.addLast("idleStateHandler", idleStateHandler);
-                pipeline.addLast("myPipelineHandler", new IdleStateAwareChannelHandler() {
-                    @Override
-                    public void channelIdle(ChannelHandlerContext ctx, IdleStateEvent e) {
-                        if (e.getState() == IdleState.READER_IDLE) {
-                            e.getChannel().close();
-                            if (buses.containsKey(e.getChannel())) {
-                                buses.get(e.getChannel()).close();
-                                buses.remove(e.getChannel());
-                            }
-                        } else if (e.getState() == IdleState.WRITER_IDLE) {
-                            if (buses.containsKey(e.getChannel())) {
-                                buses.get(e.getChannel()).post(new Ping());
-                            }
-                        }
-                    }
-                });
                 return pipeline;
             }
         });
@@ -115,6 +99,29 @@ public class TCPEBusServer implements ExternalService {
          * SocketChannel userChannel = serverChannel.accept(); ChannelBus c =
          * new ChannelBus(userChannel); c.start(); buses.put(userChannel, c);
          */
+        
+        busChecker.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                for(Channel c : busTimers.keySet()) {
+                    if(c != null) {
+                        if (System.currentTimeMillis() - busTimers.get(c) > StaticConfig.TCP_EBUS_TIMEOUT_MS) {
+                            Logger.getLogger(getClass().getName()).info("Channel was idle, closing!");
+                            c.close();
+                            if (buses.containsKey(c)) {
+                                buses.get(c).close();
+                                buses.remove(c);
+                                busTimers.remove(c);
+                            }
+                            else {
+                                Logger.getLogger(getClass().getName()).info("Buse closed, removing from busTimers");
+                                busTimers.remove(c);
+                            }
+                        }
+                    }
+                }
+            }
+        }, 1, 1, TimeUnit.SECONDS);
     }
 
     public void stop() throws IOException {
@@ -125,7 +132,6 @@ public class TCPEBusServer implements ExternalService {
             bus.close();
         }
 
-        timer.stop();
 
         busExecutor.shutdown();
         boolean finished = false;
@@ -203,6 +209,8 @@ public class TCPEBusServer implements ExternalService {
          */
         @Override
         public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) {
+            busTimers.put(e.getChannel(), System.currentTimeMillis());
+            
             try {
                 //System.out.println("SRV.MSG_RECV");
                 ChannelBuffer buf = (ChannelBuffer) e.getMessage();
