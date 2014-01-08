@@ -108,14 +108,15 @@ public class TCPEBusServer implements ExternalService {
                         if (System.currentTimeMillis() - busTimers.get(c) > StaticConfig.TCP_EBUS_TIMEOUT_MS) {
                             Logger.getLogger(getClass().getName()).info("Channel was idle, closing!");
                             c.close();
-                            if (buses.containsKey(c)) {
-                                buses.get(c).close();
-                                buses.remove(c);
-                                busTimers.remove(c);
-                            }
-                            else {
-                                Logger.getLogger(getClass().getName()).info("Buse closed, removing from busTimers");
-                                busTimers.remove(c);
+                            synchronized (buses) {
+                                if (buses.containsKey(c)) {
+                                    buses.get(c).close();
+                                    buses.remove(c);
+                                    busTimers.remove(c);
+                                } else {
+                                    Logger.getLogger(getClass().getName()).info("Buse closed, removing from busTimers");
+                                    busTimers.remove(c);
+                                }
                             }
                         }
                     }
@@ -126,10 +127,12 @@ public class TCPEBusServer implements ExternalService {
 
     public void stop() throws IOException {
         //System.out.println("TCPEBS.stop()");
-        for (Channel chan : buses.keySet()) {
-            ChannelBus bus = buses.get(chan);
-            bus.stop();
-            bus.close();
+        synchronized (buses) {
+            for (Channel chan : buses.keySet()) {
+                ChannelBus bus = buses.get(chan);
+                bus.stop();
+                bus.close();
+            }
         }
 
 
@@ -189,7 +192,9 @@ public class TCPEBusServer implements ExternalService {
         public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
             ChannelBus c = new ChannelBus(e.getChannel());
             c.start();
-            buses.put(e.getChannel(), c);
+            synchronized(buses) {
+                buses.put(e.getChannel(), c);
+            }
             c.register(new StandardBusSubscriber(c));
             c.register(new BusLogger());
         }
@@ -197,9 +202,11 @@ public class TCPEBusServer implements ExternalService {
         @Override
         public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
             Logger.getLogger(getClass().getName()).log(Level.INFO, "Channel disconnected");
-            if (buses.containsKey(e.getChannel())) {
-                buses.get(e.getChannel()).close();
-                buses.remove(e.getChannel());
+            synchronized(buses) {
+                if (buses.containsKey(e.getChannel())) {
+                    buses.get(e.getChannel()).close();
+                    buses.remove(e.getChannel());
+                }
             }
         }
 
@@ -224,7 +231,9 @@ public class TCPEBusServer implements ExternalService {
                 try {
                     Object o = JSON_MAPPER.readValue(bytes, Class.forName(className));
                     //System.out.println(o.getClass()+" o.toString(): "+o.toString());
-                    buses.get(e.getChannel()).postOnlyOnLocalBus(o);
+                    synchronized(buses)  {
+                        buses.get(e.getChannel()).postOnlyOnLocalBus(o);
+                    }
                 } catch (ClassNotFoundException | IOException ex) {
                     Logger.getLogger(TCPEBusServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -240,9 +249,11 @@ public class TCPEBusServer implements ExternalService {
         public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
             Logger.getLogger(RemoteAdminServer.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
             e.getChannel().close();
-            if (buses.containsKey(e.getChannel())) {
-                buses.get(e.getChannel()).close();
-                buses.remove(e.getChannel());
+            synchronized(buses) {
+                if (buses.containsKey(e.getChannel())) {
+                    buses.get(e.getChannel()).close();
+                    buses.remove(e.getChannel());
+                }
             }
         }
 
