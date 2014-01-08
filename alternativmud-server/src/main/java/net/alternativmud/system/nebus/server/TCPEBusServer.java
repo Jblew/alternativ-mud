@@ -196,7 +196,7 @@ public class TCPEBusServer implements ExternalService {
                 buses.put(e.getChannel(), c);
             }
             c.register(new StandardBusSubscriber(c));
-            c.register(new BusLogger());
+            c.register(new LimitedBusLogger());
         }
 
         @Override
