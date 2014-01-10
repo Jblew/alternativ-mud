@@ -34,28 +34,27 @@ public class Unity3DModeSubscriber {
     private final User user;
     private byte sceneID;
     private byte characterID;
-    
+
     public Unity3DModeSubscriber(UnityServer unityServer, EventBus ebus, User user, UCharacter character, byte sceneID) {
         this.unityServer = unityServer;
         this.ebus = ebus;
         this.user = user;
         this.character = character;
         this.sceneID = sceneID;
-        
+
         characterID = unityServer.addCharacterToScene(sceneID, character.getName());
         int port = unityServer.getPort()+sceneID;
-        
+
         if(charactersInScenes.containsKey(sceneID)) {
             Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
             charactersInScene.put(characterID, character);
-            
+
             for(byte enemyID : charactersInScene.keySet()) {
                 if(characterBuses.containsKey(charactersInScene.get(enemyID))) {
-                    characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(enemyID, charactersInScene.get(enemyID)));
+                    characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(characterID, character));
                 }
             }
-        }
-        else {
+        } else {
             Map<Byte, UCharacter> charactersInScene = Collections.synchronizedMap(new HashMap<Byte, UCharacter>());
             charactersInScene.put(characterID, character);
             charactersInScenes.put(sceneID, charactersInScene);
@@ -63,39 +62,41 @@ public class Unity3DModeSubscriber {
         characterBuses.put(character, ebus);
         ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(charactersInScenes.get(sceneID))));
     }
-    
-    @Subscribe 
+
+    @Subscribe
     public void ebusClosed(TCPEBusServer.EBusClosed evt) {
-        Logger.getLogger(getClass().getName()).info("Ebus of "+user.getLogin()+":"+character.getName()+" closed. Unregistering Unity3DModeSubscriber, removing character from UnityServer");
+        Logger.getLogger(getClass().getName()).info("Ebus of " + user.getLogin() + ":" + character.getName() + " closed. Unregistering Unity3DModeSubscriber, removing character from UnityServer");
         unityServer.removeCharacterFromScene(sceneID, character.getName());
-        
-        if(charactersInScenes.containsKey(sceneID)) {
+
+        if (charactersInScenes.containsKey(sceneID)) {
             Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
             charactersInScene.remove(characterID);
-            
-            for(byte enemyID : charactersInScene.keySet()) {
-                if(characterBuses.containsKey(charactersInScene.get(enemyID)) && enemyID != characterID) {
+
+            for (byte enemyID : charactersInScene.keySet()) {
+                if (characterBuses.containsKey(charactersInScene.get(enemyID)) && enemyID != characterID) {
                     characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyLeft(enemyID, charactersInScene.get(enemyID)));
                 }
             }
         }
-        
+
         characterBuses.remove(character);
-        
+
         ebus.unregister(this);
     }
-    
+
     @Subscribe
     public void describeCharacter(DescribeCharacter evt) {
-        if(charactersInScenes.containsKey(sceneID)) {
-            if(charactersInScenes.get(sceneID).containsKey(evt.characterID)) {
+        if (charactersInScenes.containsKey(sceneID)) {
+            if (charactersInScenes.get(sceneID).containsKey(evt.characterID)) {
                 ebus.post(new CharacterDescription(evt.characterID, charactersInScenes.get(sceneID).get(evt.characterID)));
+            } else {
+                ebus.post(new CouldNotDescribeCharacter(evt.characterID));
             }
-            else ebus.post(new CouldNotDescribeCharacter(evt.characterID));
+        } else {
+            ebus.post(new CouldNotDescribeCharacter(evt.characterID));
         }
-        else ebus.post(new CouldNotDescribeCharacter(evt.characterID));
     }
-    
+
     @Subscribe
     public void changeScene(ChangeScene evt) {
         try {
@@ -107,13 +108,13 @@ public class Unity3DModeSubscriber {
 
                 for (byte enemyID : charactersInScene.keySet()) {
                     if (characterBuses.containsKey(charactersInScene.get(enemyID)) && enemyID != characterID) {
-                        characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyLeft(enemyID, charactersInScene.get(enemyID)));
+                        characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyLeft(characterID, character));
                     }
                 }
             }
-            
+
             sceneID = newSceneID;
-            
+
             characterID = unityServer.addCharacterToScene(sceneID, character.getName());
             int port = unityServer.getPort() + sceneID;
 
@@ -123,7 +124,7 @@ public class Unity3DModeSubscriber {
 
                 for (byte enemyID : charactersInScene.keySet()) {
                     if (characterBuses.containsKey(charactersInScene.get(enemyID))) {
-                        characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(enemyID, charactersInScene.get(enemyID)));
+                        characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(characterID, character));
                     }
                 }
             } else {
@@ -137,14 +138,28 @@ public class Unity3DModeSubscriber {
             ebus.post(new SceneEnterFailed("No such scene on server"));
         }
     }
-    
+
+    @Subscribe
+    public void postChatMessage(PostChatMessage evt) {
+        if (charactersInScenes.containsKey(sceneID)) {
+            Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
+            for (byte enemyID : charactersInScene.keySet()) {
+                if (characterBuses.containsKey(charactersInScene.get(enemyID))) {
+                    characterBuses.get(charactersInScene.get(enemyID)).post(new ChatMessage(evt.getMessage(), characterID, character));
+                }
+            }
+        }
+    }
+
     public static class SceneEnterSucceeded {
+
         private int port;
         private byte characterID;
         private Map<Byte, UCharacter> enemies;
 
-        public SceneEnterSucceeded() {}
-        
+        public SceneEnterSucceeded() {
+        }
+
         public SceneEnterSucceeded(int port, byte characterID, Map<Byte, UCharacter> enemies) {
             this.port = port;
             this.characterID = characterID;
@@ -175,8 +190,9 @@ public class Unity3DModeSubscriber {
             this.enemies = enemies;
         }
     }
-    
+
     public static class SceneEnterFailed {
+
         private String message;
 
         public SceneEnterFailed() {
@@ -194,8 +210,9 @@ public class Unity3DModeSubscriber {
             this.message = message;
         }
     }
-    
+
     public static class DescribeCharacter {
+
         private byte characterID;
 
         public DescribeCharacter(byte characterID) {
@@ -210,8 +227,9 @@ public class Unity3DModeSubscriber {
             this.characterID = characterID;
         }
     }
-    
+
     public static class EnemyArrived {
+
         private byte characterID;
         private UCharacter character;
 
@@ -239,8 +257,9 @@ public class Unity3DModeSubscriber {
             this.character = character;
         }
     }
-    
+
     public static class EnemyLeft {
+
         private byte characterID;
         private UCharacter character;
 
@@ -268,8 +287,9 @@ public class Unity3DModeSubscriber {
             this.character = character;
         }
     }
-    
+
     public static class CharacterDescription {
+
         private byte characterID;
         private UCharacter character;
 
@@ -297,8 +317,9 @@ public class Unity3DModeSubscriber {
             this.character = character;
         }
     }
-    
+
     public static class CouldNotDescribeCharacter {
+
         private byte characterID;
 
         public CouldNotDescribeCharacter() {
@@ -316,8 +337,9 @@ public class Unity3DModeSubscriber {
             this.characterID = characterID;
         }
     }
-    
+
     public static class ChangeScene {
+
         private String sceneName;
 
         public ChangeScene() {
@@ -333,6 +355,66 @@ public class Unity3DModeSubscriber {
 
         public void setSceneName(String sceneName) {
             this.sceneName = sceneName;
+        }
+    }
+
+    public static class ChatMessage {
+
+        private String message;
+        private byte characterID;
+        private UCharacter character;
+
+        public ChatMessage() {
+        }
+
+        public ChatMessage(String message, byte characterID, UCharacter character) {
+            this.message = message;
+            this.characterID = characterID;
+            this.character = character;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public byte getCharacterID() {
+            return characterID;
+        }
+
+        public void setCharacterID(byte characterID) {
+            this.characterID = characterID;
+        }
+
+        public UCharacter getCharacter() {
+            return character;
+        }
+
+        public void setCharacter(UCharacter character) {
+            this.character = character;
+        }
+    }
+
+    public static class PostChatMessage {
+
+        private String message;
+
+        public PostChatMessage() {
+        }
+
+        public PostChatMessage(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
         }
     }
 }
