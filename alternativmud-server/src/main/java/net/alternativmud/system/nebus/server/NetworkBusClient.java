@@ -14,7 +14,6 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.alternativmud.system.remoteadmin.RemoteAdminServer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -149,7 +148,7 @@ public class NetworkBusClient extends EventBus {
          */
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-            Logger.getLogger(RemoteAdminServer.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
+            Logger.getLogger(NetworkBusClient.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
             e.getChannel().close();
         }
     }

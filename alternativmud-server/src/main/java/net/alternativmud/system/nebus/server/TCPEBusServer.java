@@ -28,7 +28,6 @@ import net.alternativmud.framework.ExternalService;
 import net.alternativmud.lib.NamingThreadFactory;
 import net.alternativmud.lib.debug.BusLogger;
 import net.alternativmud.logic.event.GameBusAcceptedEvent;
-import net.alternativmud.system.remoteadmin.RemoteAdminServer;
 import net.alternativmud.system.telnetserver.TelnetServer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -247,7 +246,7 @@ public class TCPEBusServer implements ExternalService {
          */
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-            Logger.getLogger(RemoteAdminServer.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
+            Logger.getLogger(TCPEBusServer.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
             e.getChannel().close();
             synchronized(buses) {
                 if (buses.containsKey(e.getChannel())) {

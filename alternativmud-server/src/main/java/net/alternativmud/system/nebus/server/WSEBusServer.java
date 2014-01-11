@@ -19,7 +19,6 @@ import java.util.logging.Logger;
 import net.alternativmud.framework.ExternalService;
 import net.alternativmud.lib.NamingThreadFactory;
 import net.alternativmud.lib.debug.BusLogger;
-import net.alternativmud.system.remoteadmin.RemoteAdminServer;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -253,7 +252,7 @@ public class WSEBusServer implements ExternalService {
          */
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-            Logger.getLogger(RemoteAdminServer.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
+            Logger.getLogger(WSEBusServer.class.getName()).log(Level.WARNING, "Unexpected exception from downstream.", e.getCause());
             e.getChannel().close();
         }
 
