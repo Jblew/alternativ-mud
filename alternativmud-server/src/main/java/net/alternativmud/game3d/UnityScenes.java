@@ -16,7 +16,8 @@ public class UnityScenes {
     //No more scenes than Byte.MAX_VALUE!
     public static String [] SCENES = new String [] {
         "ElegantRoom",
-        "Passage"
+        "Passage",
+        "Train"
     };
     
     public static byte getSceneID(String name) {
