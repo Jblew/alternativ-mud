@@ -47,6 +47,7 @@ class SceneDataManager {
     }
 
     public synchronized void removeCharacter(String name) {
+        //System.out.println("Remove "+name);
         byte id = characters.get(name);
         characters.remove(name);
         idManager.clear(id);
