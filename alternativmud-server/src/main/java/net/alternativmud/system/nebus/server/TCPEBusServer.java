@@ -84,7 +84,7 @@ public class TCPEBusServer implements ExternalService {
             @Override
             public ChannelPipeline getPipeline() throws Exception {
                 ChannelPipeline pipeline = Channels.pipeline(); //Tworzymy nowe gniazdo
-                pipeline.addLast("framer", new LengthFieldBasedFrameDecoder(8192, 0, 4, 0, 0));
+                pipeline.addLast("framer", new LengthFieldBasedFrameDecoder(16384, 0, 4, 0, 0));
                 pipeline.addLast("handler", new Handler());//Handler jest tworzony dla każdego nowego wątku i obsługuje go potem.
                 return pipeline;
             }

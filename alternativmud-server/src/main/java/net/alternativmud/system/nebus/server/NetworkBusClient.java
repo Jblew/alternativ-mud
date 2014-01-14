@@ -47,7 +47,7 @@ public class NetworkBusClient extends EventBus {
             @Override
             public ChannelPipeline getPipeline() {
                 ChannelPipeline pipeline = Channels.pipeline();
-                pipeline.addLast("framer", new LengthFieldBasedFrameDecoder(8192, 0, 4, 0, 0));
+                pipeline.addLast("framer", new LengthFieldBasedFrameDecoder(16384, 0, 4, 0, 0));
                 pipeline.addLast("handler", new Handler());
                 return pipeline;
             }
