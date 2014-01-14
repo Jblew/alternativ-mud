@@ -58,7 +58,12 @@ public class AuthenticatedBusSubscriber {
             if(service != null && service instanceof UnityServer) {
                 UnityServer srv = (UnityServer) service;
                 UCharacter character = App.getApp().getWorld().getCharactersManager().getCharacter(evt.getCharacterName());
-                ebus.register(new Unity3DModeSubscriber(srv, ebus, user, character, sceneID));
+                if(character != null) {
+                    ebus.register(new Unity3DModeSubscriber(srv, ebus, user, character, sceneID));
+                }
+                else {
+                    ebus.post(new Unity3DModeEnterFailed("There is no such character "+evt.getCharacterName()));
+                }
             }
             else {
                 ebus.post(new Unity3DModeEnterFailed("Unity server is not registered in ServiceManager"));
