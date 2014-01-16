@@ -171,7 +171,7 @@ public class TCPEBusServerTest extends TestCase {
                 }
             }
         });
-        closeFuture.get(250, TimeUnit.MILLISECONDS);
+        closeFuture.get(500, TimeUnit.MILLISECONDS);
         executor.shutdownNow();
         assertTrue("Server not stopped.", closeFuture.isDone());
     }
