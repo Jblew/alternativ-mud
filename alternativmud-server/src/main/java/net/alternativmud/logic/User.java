@@ -4,6 +4,8 @@
  */
 package net.alternativmud.logic;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +20,22 @@ import net.alternativmud.security.PasswordHasher;
  * @author maciek
  */
 @Enity
+@DatabaseTable(tableName = "users")
 public class User {
+    @DatabaseField(canBeNull = false)
     private String passwordHash;
+    
+    @DatabaseField(canBeNull = true)
     private String selectedCharacter = "";
+    
+    @DatabaseField(id = true, canBeNull = false, unique = true)
     private String login;
+    
+    @DatabaseField(canBeNull = false, defaultValue = "false")
     private boolean admin = false;
+    
+    @DatabaseField(canBeNull = false, defaultValue = "false")
+    private boolean online = false;
 
     public User() {
     }
@@ -65,6 +78,14 @@ public class User {
 
     public void setSelectedCharacter(String selectedCharacter) {
         this.selectedCharacter = selectedCharacter;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
     }
 
     @Override
