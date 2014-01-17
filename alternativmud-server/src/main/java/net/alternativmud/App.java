@@ -100,6 +100,8 @@ public class App {
 
         //runtime tasks
         lifecycle.registerBootstrapTask(new RunTests());
+        
+        System.gc(); 
     }
     private DaemonController daemonController = null;
 
