@@ -8,6 +8,7 @@ import net.alternativmud.logic.geo.Coordinates3l;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.alternativmud.Config;
 import net.alternativmud.lib.persistence.PersistenceManager;
 import net.alternativmud.logic.User;
 import net.alternativmud.logic.time.TimeMachine;
@@ -27,11 +28,11 @@ public class World {
     private final Sun sun;
     private final HomePlanet homePlanet;
 
-    public World(PersistenceManager persistenceManager, User.Manager usersManager) {
+    public World(Config config, PersistenceManager persistenceManager, User.Manager usersManager) {
         charactersManager = new UCharacter.Manager(persistenceManager);
         locationsManager = new Location.Manager(persistenceManager);
         sun = persistenceManager.loadObject("sun", new Sun());
-        timeMachine = persistenceManager.loadObject("time-machine", new TimeMachine());
+        timeMachine = persistenceManager.loadObject("time-machine", new TimeMachine(config));
         homePlanet = persistenceManager.loadObject("home-planet", new HomePlanet());
         
         Logger.getLogger(World.class.getName()).log(Level.INFO, "World loaded. Time is {0} and counting with speed factor x{1}",

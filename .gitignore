@@ -9,5 +9,6 @@ trunk/
 wiki/
 alternativmud-server/latest-alternativmud-server.jar
 alternativmud-gclient/latest-alternativmud-gclient.jar
+alternativmud-server/config.json
 *.swp
 *~

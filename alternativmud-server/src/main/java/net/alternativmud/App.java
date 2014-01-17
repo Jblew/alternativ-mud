@@ -5,6 +5,7 @@
 package net.alternativmud;
 
 import com.google.common.eventbus.EventBus;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
@@ -41,21 +42,42 @@ public class App {
     private final IdManager idManager;
     private final User.Manager usersManager;
     private final GamesManager gamesManager;
+    private final Config config;
     private final World world;
 
-    public App() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, IOException {
+    public App(String configFile) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, IOException {
         try {
             new PrepareLogger().execute();
         } catch (Exception ex) {
             Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        if(configFile == null || configFile.isEmpty()) {
+            if(new File(StaticConfig.DEFAULT_CONFIG_FILE).exists()) {
+                config = Config.LoadConfig(StaticConfig.DEFAULT_CONFIG_FILE);
+            }
+            else {
+                config = new Config();
+                config.save(StaticConfig.DEFAULT_CONFIG_FILE);
+            }
+        }
+        else {
+            if(new File(configFile).exists()) {
+                config = Config.LoadConfig(configFile);
+            }
+            else {
+                Logger.getLogger(App.class.getName()).warning("Could not find specified config file ("+configFile+")");
+                config = new Config();
+            }
+        }
+        
         lifecycle = new Lifecycle(systemBus);
         serviceManager = new ServiceManager(systemBus);
         persistenceManager = new PersistenceManager(new FilePersistenceProvider());
         idManager = new IdManager();
         usersManager = new User.Manager(persistenceManager);
         gamesManager = new GamesManager();
-        world = new World(persistenceManager, usersManager);
+        world = new World(config, persistenceManager, usersManager);
 
         //initialize tasks
         lifecycle.registerBootstrapTask(new InitBusDebug());
@@ -132,6 +154,10 @@ public class App {
         return gamesManager;
     }
 
+    public Config getConfig() {
+        return config;
+    }
+
     public World getWorld() {
         return world;
     }
@@ -145,7 +171,12 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        INSTANCE = new App();
+        if(args.length > 1) {
+            INSTANCE = new App(args[1]);
+        }
+        else {
+           INSTANCE = new App(null); 
+        }
         INSTANCE.start();
     }
 
@@ -153,7 +184,7 @@ public class App {
      * This metod allows to start this App inside other app.
      */
     public static App embeddedInit() throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, IOException {
-        INSTANCE = new App();
+        INSTANCE = new App(null);
         new Thread(new Runnable() {
 
             @Override

@@ -5,7 +5,7 @@
 package net.alternativmud.logic.time;
 
 import java.util.Date;
-import net.alternativmud.StaticConfig;
+import java.util.logging.Logger;
 import net.alternativmud.logic.geo.Coordinates3l;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.joda.time.DateTime;
@@ -16,9 +16,10 @@ import org.joda.time.DateTimeFieldType;
  * @author jblew
  */
 public class TimeMachine {
-    private Config config = new Config();
+    private Config config;
     private DateTime dateTime = new DateTime();
-    public TimeMachine() {
+    public TimeMachine(net.alternativmud.Config globalConfig) {
+        config = new Config(globalConfig.getNtpServers());
     }
 
     public Config getConfig() {
@@ -67,6 +68,7 @@ public class TimeMachine {
     }
 
     private void updateTime(int correctionMs) {
+        if(config == null) Logger.getLogger(getClass().getName()).warning("Time machine config was not initialised! Could not update time.");
         dateTime = new DateTime(config.getBaseDate()).plusMillis((int) config.getLocalTimestamp().getTimestamp() + correctionMs);
     }
 
@@ -76,12 +78,17 @@ public class TimeMachine {
     }
 
     public class Config {
-        private LocalTimeAcceleratingTimestamp localTimestamp =
-                new LocalTimeAcceleratingTimestamp(0, 60);
+        private LocalTimeAcceleratingTimestamp localTimestamp = new LocalTimeAcceleratingTimestamp(0, 60);
         private Date baseDate = new Date();
+        private String [] ntpServers;
 
+        public Config(String [] ntpServers) {
+            this.ntpServers = ntpServers;
+            localTimestamp.setPrecisionTimer(new NtpPrecisionTimer(ntpServers, TimeValue.valueOf("2h")));
+        }
+        
         public Config() {
-            localTimestamp.setPrecisionTimer(new NtpPrecisionTimer(StaticConfig.NTP_SERVERS, TimeValue.valueOf("2h")));
+            
         }
 
         @JsonIgnore
@@ -110,5 +117,13 @@ public class TimeMachine {
             this.baseDate = baseDate;
         }
 
+        public String[] getNtpServers() {
+            return ntpServers;
+        }
+
+        public void setNtpServers(String[] ntpServers) {
+            this.ntpServers = ntpServers;
+            localTimestamp.setPrecisionTimer(new NtpPrecisionTimer(ntpServers, TimeValue.valueOf("2h")));
+        }
     }
 }

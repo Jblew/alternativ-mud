@@ -66,10 +66,12 @@ public class TCPEBusServer implements ExternalService {
     private final ScheduledExecutorService busChecker = Executors.newSingleThreadScheduledExecutor(new NamingThreadFactory("TCP_EBusServer-bus-checker"));
     private final Map<Channel, Long> busTimers = Collections.synchronizedMap(new WeakHashMap<Channel, Long>());
     private final EventBus globalEBus;
+    private final long ebusTimeoutMs;
     private ServerBootstrap tcpBootstrap;
 
     public TCPEBusServer(EventBus globalEBus) {
         this.globalEBus = globalEBus;
+        this.ebusTimeoutMs = App.getApp().getConfig().getTcpEBusTimeoutMs();
     }
 
     public void start() throws IOException {
@@ -104,7 +106,7 @@ public class TCPEBusServer implements ExternalService {
             public void run() {
                 for(Channel c : busTimers.keySet()) {
                     if(c != null) {
-                        if (System.currentTimeMillis() - busTimers.get(c) > StaticConfig.TCP_EBUS_TIMEOUT_MS) {
+                        if (System.currentTimeMillis() - busTimers.get(c) > ebusTimeoutMs) {
                             Logger.getLogger(getClass().getName()).info("Channel was idle, closing!");
                             c.close();
                             synchronized (buses) {
