@@ -6,8 +6,11 @@ package net.alternativmud.system.nebus.server;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.alternativmud.App;
 import net.alternativmud.lib.containers.TwoTuple;
 import net.alternativmud.logic.User;
@@ -25,19 +28,28 @@ public class StandardBusSubscriber {
     public StandardBusSubscriber(EventBus ebus) {
         this.ebus = ebus;
     }
-    
+
     @Subscribe
     public void login(PerformLogin evt) {
-        User user = App.getApp().getUsersManager().authenticate(evt.getLogin(), evt.getPassword());
-        if(user != null) {
-            ebus.post(new LoginSucceeded(user));
-            ebus.register(new AuthenticatedBusSubscriber(ebus, user));
-        }
-        else {
+        try {
+            if (App.getApp().getEntitiesManager().getUsersDao() == null) {
+                Logger.getLogger(StandardBusSubscriber.class.getName()).log(Level.SEVERE, "UsersDao is null, could not perform login");
+                ebus.post(new LoginFailed());
+            } else {
+                User user = App.getApp().getEntitiesManager().getUsersDao().queryForId(evt.getLogin());
+                if (user != null && user.isPasswordCorrect(evt.getPassword())) {
+                    ebus.post(new LoginSucceeded(user));
+                    ebus.register(new AuthenticatedBusSubscriber(ebus, user));
+                } else {
+                    ebus.post(new LoginFailed());
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(StandardBusSubscriber.class.getName()).log(Level.SEVERE, "Could not perform login", ex);
             ebus.post(new LoginFailed());
         }
     }
-    
+
     @Subscribe
     public void getStatus(GetStatus evt) {
         Status s = new Status();
@@ -77,12 +89,12 @@ public class StandardBusSubscriber {
 
     public static final class LoginSucceeded {
         private final User user;
-        
+
         @JsonCreator
         public LoginSucceeded(@JsonProperty("user") User user) {
             this.user = user;
         }
-        
+
         @JsonProperty("user")
         public User getUser() {
             return user;
@@ -91,9 +103,9 @@ public class StandardBusSubscriber {
 
     public static final class LoginFailed {
     }
-    
+
     public static final class GetStatus {}
-    
+
     public static final class Status {
         private String title = "";
         private String subtitle = "";
@@ -114,6 +126,6 @@ public class StandardBusSubscriber {
         public void setTitle(String title) {
             this.title = title;
         }
-        
+
     }
 }

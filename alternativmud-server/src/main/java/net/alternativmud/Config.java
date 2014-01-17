@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.alternativmud.db.DBEntitiesManager.DatabaseConfig;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -25,6 +26,7 @@ public class Config {
         "tempus2.gum.gov.pl"
     };
     private long tcpEBusTimeoutMs = 1/*m*/*60/*s*/*1000/*ms*/;
+    private DatabaseConfig databaseConfig = new DatabaseConfig();
 
     public String[] getNtpServers() {
         return ntpServers;
@@ -40,6 +42,14 @@ public class Config {
 
     public void setTcpEBusTimeoutMs(long tcpEBusTimeoutMs) {
         this.tcpEBusTimeoutMs = tcpEBusTimeoutMs;
+    }
+
+    public DatabaseConfig getDatabaseConfig() {
+        return databaseConfig;
+    }
+
+    public void setDatabaseConfig(DatabaseConfig databaseConfig) {
+        this.databaseConfig = databaseConfig;
     }
     
     /**

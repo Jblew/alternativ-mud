@@ -64,7 +64,6 @@ public class InitPersistence implements RunnableTask {
     private void saveAndShutdown() {
         try {
             long stimeMs = System.currentTimeMillis();
-            App.getApp().getUsersManager().save(App.getApp().getPersistenceManager());
             App.getApp().getWorld().save(App.getApp().getPersistenceManager());
             App.getApp().getPersistenceManager().shutdown();
             

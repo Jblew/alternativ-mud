@@ -83,10 +83,6 @@ public class User {
     public boolean isOnline() {
         return online;
     }
-    
-    public boolean getOnline() {
-        return online;
-    }
 
     public void setOnline(boolean online) {
         this.online = online;
@@ -96,78 +92,30 @@ public class User {
     public String toString() {
         return "User{" + "login=" + login + ", admin=" + admin + '}';
     }
+    
+    public static User[] createInitialUsers() {
+        User[] initialUsers = new User[4];
+        User u1 = new User();
+        u1.setLogin("admin");
+        u1.setPassword("admin");
+        u1.setAdmin(true);
+        initialUsers[0] = u1;
 
-    public static class Manager {
-        private final ArrayList<User> list = new ArrayList<>();
-        
-        public Manager(PersistenceManager persistenceManager) {
-            try {
-                list.addAll(persistenceManager.loadCollection("users", new User [] {}));
-            } catch (IOException ex) {
-                Logger.getLogger(User.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            if (list.size() < 1) {
-                User u1 = new User();
-                u1.setLogin("admin");
-                u1.setPassword("admin");
-                u1.setAdmin(true);
-                list.add(u1);
+        User u2 = new User();
+        u2.setLogin("tester");
+        u2.setPassword("tester");
+        initialUsers[1] = u2;
 
-                User u2 = new User();
-                u2.setLogin("tester");
-                u2.setPassword("tester");
-                list.add(u2);
-                
-                User mob_statue = new User();
-                mob_statue.setLogin("mob_statue");
-                mob_statue.setPassword("mob_statue");
-                list.add(mob_statue);
-                
-                User mob_ninja = new User();
-                mob_ninja.setLogin("mob_ninja");
-                mob_ninja.setPassword("mob_ninja");
-                list.add(mob_ninja);
+        User mob_statue = new User();
+        mob_statue.setLogin("mob_statue");
+        mob_statue.setPassword("mob_statue");
+        initialUsers[2] = mob_statue;
 
-                Logger.getLogger(User.Manager.class.getName())
-                        .info("Added 'admin', 'tester', 'mob_statue', 'mob_ninja', users to database.");
-            } else {
-                Logger.getLogger(User.Manager.class.getName())
-                        .log(Level.INFO, "Users count: {0}", list.size());
-            }
-            
-            //Musimy miec przynajmniej domyslnego uzytkownika, ktory bedzie
-            //przechowywal bezpanskie Charactery.
-            if(getUser("default") == null) {
-                User defaultUser = new User();
-                defaultUser.setLogin("default");
-                defaultUser.setPassword("default#user#password#1234567890");
-                list.add(defaultUser);
-            }
-        }
+        User mob_ninja = new User();
+        mob_ninja.setLogin("mob_ninja");
+        mob_ninja.setPassword("mob_ninja");
+        initialUsers[3] = mob_ninja;
         
-        public User getUser(String login) {
-            for(User u : list) {
-                if(u.getLogin().equals(login))
-                    return u;
-            }
-            return null;
-        }
-        
-        public List<User> getUsers() {
-            return list;
-        }
-
-        public User authenticate(String login, String password) {
-            for(User u : list) {
-                if(u.getLogin().equals(login) && u.isPasswordCorrect(password))
-                    return u;
-            }
-            return null;
-        }
-        
-        public void save(PersistenceManager persistenceManager) throws IOException {
-            persistenceManager.saveCollection("users", list);
-        }
+        return initialUsers;
     }
 }

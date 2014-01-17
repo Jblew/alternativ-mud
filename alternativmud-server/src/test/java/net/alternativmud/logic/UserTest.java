@@ -31,13 +31,12 @@ public class UserTest extends TestCase {
     }
 
     public void testTesterAuthentication() {
-        User.Manager usersMgr = new User.Manager(persistanceManager);
-        //BasicDBObject query = new BasicDBObject();
-        //query.put("login", "tester");
-        assertNotNull("User tester does not exist", usersMgr.getUser("tester"));
+        User u = new User();
+        u.setLogin("tester");
+        u.setPassword("tester");
         
-        User u = usersMgr.authenticate("tester", "tester");
-        assertNotNull("Cannot authenticate tester", u);
+        assertTrue("Checking password", u.isPasswordCorrect("tester"));
+        assertFalse("Checking password", u.isPasswordCorrect("tester1"));
         assertEquals("Got different user than tester.", "tester", u.getLogin());
     }
 }

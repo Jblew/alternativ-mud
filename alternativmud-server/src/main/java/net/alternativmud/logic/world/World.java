@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.Config;
+import net.alternativmud.db.DBEntitiesManager;
 import net.alternativmud.lib.persistence.PersistenceManager;
 import net.alternativmud.logic.User;
 import net.alternativmud.logic.time.TimeMachine;
@@ -28,7 +29,7 @@ public class World {
     private final Sun sun;
     private final HomePlanet homePlanet;
 
-    public World(Config config, PersistenceManager persistenceManager, User.Manager usersManager) {
+    public World(Config config, PersistenceManager persistenceManager, DBEntitiesManager entitiesManager) {
         charactersManager = new UCharacter.Manager(persistenceManager);
         locationsManager = new Location.Manager(persistenceManager);
         sun = persistenceManager.loadObject("sun", new Sun());
