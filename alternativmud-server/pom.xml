@@ -57,6 +57,11 @@
             <artifactId>net</artifactId>
             <version>3.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.j256.ormlite</groupId>
+            <artifactId>ormlite-core</artifactId>
+            <version>4.48</version>
+        </dependency>
     </dependencies>
 
     <build>
