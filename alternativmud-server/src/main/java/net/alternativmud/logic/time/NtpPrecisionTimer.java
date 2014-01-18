@@ -39,40 +39,42 @@ public class NtpPrecisionTimer implements PrecisionTimer {
      * external thread.
      */
     public void synchronize() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Logger.getLogger(NtpPrecisionTimer.class.getName()).info("Synchronizing time with ntp servers...");
-                try {
-                    NTPUDPClient client = new NTPUDPClient();
-                    client.open();
-                    boolean gotTime = false;
-                    for (String addr : ntpServers) {
-                        try {
-                            TimeInfo info = client.getTime(Inet4Address.getByName(addr));
-                            info.computeDetails();
-                            Long offsetValue = info.getOffset();
-                            msCorrection.set(offsetValue);
-                            gotTime = true;
-                            Logger.getLogger(NtpPrecisionTimer.class.getName()).info("Successfully synchronied time with " + addr + ". Currect correction: " + msCorrection.get());
-                            break;
-                        } catch (IOException ex) {
-                            Logger.getLogger(NtpPrecisionTimer.class.getName()).log(Level.WARNING, "Synchronization problem", ex);
+        if (ntpServers != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Logger.getLogger(NtpPrecisionTimer.class.getName()).info("Synchronizing time with ntp servers...");
+                    try {
+                        NTPUDPClient client = new NTPUDPClient();
+                        client.open();
+                        boolean gotTime = false;
+                        for (String addr : ntpServers) {
+                            try {
+                                TimeInfo info = client.getTime(Inet4Address.getByName(addr));
+                                info.computeDetails();
+                                Long offsetValue = info.getOffset();
+                                msCorrection.set(offsetValue);
+                                gotTime = true;
+                                Logger.getLogger(NtpPrecisionTimer.class.getName()).info("Successfully synchronied time with " + addr + ". Currect correction: " + msCorrection.get());
+                                break;
+                            } catch (IOException ex) {
+                                Logger.getLogger(NtpPrecisionTimer.class.getName()).log(Level.WARNING, "Synchronization problem", ex);
+                            }
                         }
+                        if (!gotTime) {
+                            Logger.getLogger(NtpPrecisionTimer.class.getName()).log(Level.SEVERE,
+                                    "Couldn't get time from any server given in array. Last correction will be kept.");
+                        }
+                    } catch (SocketException ex) {
+                        Logger.getLogger(NtpPrecisionTimer.class.getName()).log(Level.WARNING, "Synchronization problem", ex);
                     }
-                    if (!gotTime) {
-                        Logger.getLogger(NtpPrecisionTimer.class.getName()).log(Level.SEVERE,
-                                "Couldn't get time from any server given in array. Last correction will be kept.");
-                    }
-                } catch (SocketException ex) {
-                    Logger.getLogger(NtpPrecisionTimer.class.getName()).log(Level.WARNING, "Synchronization problem", ex);
+
+                    synchronizeFlag.set(new TimeFlag(synchronizationFrequency));
                 }
 
-                synchronizeFlag.set(new TimeFlag(synchronizationFrequency));    
-            }
-
-        }, "ntp-synchronization" + IdManager.getSessionSafe()).start();
-
+            }, "ntp-synchronization" + IdManager.getSessionSafe()).start();
+        }
+        //else Logger.getLogger(getClass().getName()).warning("Cannot synchronize with ntp servers: N o ntp servers specified or ");
     }
 
     @Override
