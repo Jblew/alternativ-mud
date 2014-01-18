@@ -16,4 +16,6 @@ public class StaticConfig {
     };
     
     public static final String DEFAULT_CONFIG_FILE = "config.json";
+    
+    public static final String ALTERNATIV_MUD_WEBSITE = "http://github.com/Jblew/alternativ-mud";
 }

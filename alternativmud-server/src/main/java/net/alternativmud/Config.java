@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.db.DBEntitiesManager.DatabaseConfig;
+import net.alternativmud.system.web.WebServer;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -27,6 +28,7 @@ public class Config {
     };
     private long tcpEBusTimeoutMs = 1/*m*/*60/*s*/*1000/*ms*/;
     private DatabaseConfig databaseConfig = new DatabaseConfig();
+    private WebServer.WebServerConfig webServerConfig = new WebServer.WebServerConfig();
 
     public String[] getNtpServers() {
         return ntpServers;
@@ -50,6 +52,14 @@ public class Config {
 
     public void setDatabaseConfig(DatabaseConfig databaseConfig) {
         this.databaseConfig = databaseConfig;
+    }
+    
+    public WebServer.WebServerConfig getWebServerConfig() {
+        return webServerConfig;
+    }
+
+    public void setWebServerConfig(WebServer.WebServerConfig webServerConfig) {
+        this.webServerConfig = webServerConfig;
     }
     
     /**
