@@ -26,7 +26,7 @@ public class Templates {
             Template t = new Template(Resources.toString(Resources.getResource(Templates.class, name+".html"), Charsets.UTF_8));
             t.assign("pageTitle", "AlternativMUD");
             t.assign("scripts", "");
-            t.assign("marinesMudWebsite", StaticConfig.ALTERNATIV_MUD_WEBSITE);
+            t.assign("alternativ-mud-website", StaticConfig.ALTERNATIV_MUD_WEBSITE);
             t.assign("pageContent", "<p>Sorry, page content is empty.</p>");
             return t;
         } catch (IOException ex) {

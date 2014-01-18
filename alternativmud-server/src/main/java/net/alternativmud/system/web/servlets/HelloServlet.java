@@ -35,8 +35,11 @@ public class HelloServlet extends HttpServlet {
                 tpl.assign("pageTitle", "Welcome to AlternativMUD");
                 tpl.assign("scripts", "");
 
-                tpl.assign("pageContent", "<h2>Welcome to Alteriativ MUD!</h2><p>This software is still in development phase. "
-                        + "Please visit <a href=\""+StaticConfig.ALTERNATIV_MUD_WEBSITE+"\">our page on Github</a>. If you would like to contribute, write to jblew[at]blew.pl.</p>"
+                tpl.assign("pageContent", "<h2>Welcome to AlteriativMUD!</h2><p>Thank's for using this piece of code."
+                        + " Please note, that this software is still in development phase. "
+                        + "Here, at the panel you can review settings and logs, restart server and change some of the runtime settings."
+                        + "Persistent configuration can be done via config.json file in the CWD directory."
+                        + "Please visit <a href=\""+StaticConfig.ALTERNATIV_MUD_WEBSITE+"\">our page on Github</a>. Feel free to contribute. If you wish to contact me, please mail to: jblew[at]jblew.pl</p>"
                         + "<ul>"
                         + "   <li><a href=\"/admin\">Go to admin panel</a></li>"
                         + "</ul>");
