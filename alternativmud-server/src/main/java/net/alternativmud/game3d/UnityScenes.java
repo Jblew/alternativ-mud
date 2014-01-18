@@ -17,7 +17,8 @@ public class UnityScenes {
     public static String [] SCENES = new String [] {
         "ElegantRoom",
         "Passage",
-        "Train"
+        "Train",
+        "Store"
     };
     
     public static byte getSceneID(String name) {
