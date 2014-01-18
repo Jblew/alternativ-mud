@@ -29,6 +29,7 @@ public class Config {
     private long tcpEBusTimeoutMs = 1/*m*/*60/*s*/*1000/*ms*/;
     private DatabaseConfig databaseConfig = new DatabaseConfig();
     private WebServer.WebServerConfig webServerConfig = new WebServer.WebServerConfig();
+    private String httpSessionSalt = "f3g45egrv34%#$%G#vrtfdsv^R$brrbTTYGT135";
 
     public String[] getNtpServers() {
         return ntpServers;
@@ -60,6 +61,14 @@ public class Config {
 
     public void setWebServerConfig(WebServer.WebServerConfig webServerConfig) {
         this.webServerConfig = webServerConfig;
+    }
+
+    public String getHttpSessionSalt() {
+        return httpSessionSalt;
+    }
+
+    public void setHttpSessionSalt(String httpSessionSalt) {
+        this.httpSessionSalt = httpSessionSalt;
     }
     
     /**

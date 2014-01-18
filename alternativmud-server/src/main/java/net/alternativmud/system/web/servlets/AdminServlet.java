@@ -45,7 +45,7 @@ public class AdminServlet extends AbstractAuthorizedServlet {
         Template tpl = Templates.get("admin");
         tpl.assign("pageTitle", "AlternativMUD Admin Panel");
         tpl.assign("scripts", "");
-        if (authorizedUser.getAdmin()) {
+        if (authorizedUser != null && authorizedUser.getAdmin()) {
             String content = "<div class=\"span-17 prepend-1 colborder\">";
             content += generatePage(req, res);
             content += menu(req, res);

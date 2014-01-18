@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -16,7 +17,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import net.alternativmud.App;
+import net.alternativmud.lib.IdManager;
 import net.alternativmud.logic.User;
+import net.alternativmud.security.PasswordHasher;
 import net.alternativmud.system.web.servlets.templates.Template;
 import net.alternativmud.system.web.servlets.templates.Templates;
 import org.apache.commons.codec.binary.Base64;
@@ -44,28 +47,32 @@ public class AuthServlet extends HttpServlet {
         boolean loginTry = false;
         boolean loginOk = false;
         if (req.getParameter("login") != null && req.getParameter("password") != null) {
-            loginTry = true;
-            /*User u = App.getApp().
-            if (Player.exists(req.getParameter("login"))) {
-                Player p = Player.getByName(req.getParameter("login"));
-                if (p.checkPassword(req.getParameter("password"))) {
-                    HttpSession session = req.getSession();
-                    session.setAttribute("loggedin", "true");
-                    session.setAttribute("login", p.getName());
-                    String ssid = SecurityUtils.getCtrls(p.getName() + IdGenerator.generate() + "c") + IdGenerator.generate() + "" + RandomUtils.generateRandomString(Config.getInt("salt length"), Config.get("salt characters"));
-                    session.setAttribute("ssid", ssid);
-                    AbstractAuthorizedServlet.SESSION_IDENTIFIERS.put(ssid, p);
-                    res.sendRedirect(redirect);
-                    loginOk = true;
-                    GlobalLogger.getLogger("www").log(Level.INFO, "{0} logged in.", TextUtils.ucfirst(p.getName()));
-                    return;
+            try {
+                loginTry = true;
+                User u = App.getApp().getEntitiesManager().getUsersDao().queryForId(req.getParameter("login"));
+                if (u != null) {
+                    if (u.isPasswordCorrect(req.getParameter("password"))) {
+                        HttpSession session = req.getSession();
+                        session.setAttribute("loggedin", "true");
+                        session.setAttribute("login", u.getLogin());
+                        String ssid = PasswordHasher.generateHash(u.getLogin() + IdManager.getSessionSafe()+ "c" + IdManager.getSessionSafe() + "" + App.getApp().getConfig().getHttpSessionSalt());
+                        session.setAttribute("ssid", ssid);
+                        AbstractAuthorizedServlet.SESSION_IDENTIFIERS.put(ssid, u);
+                        res.sendRedirect(redirect);
+                        loginOk = true;
+                        Logger.getLogger(getClass().getName()).log(Level.INFO, "{0} logged in.", u.getLogin());
+                        return;
+                    } else {
+                        loginOk = false;
+                    }
                 } else {
                     loginOk = false;
                 }
-            } else {
                 loginOk = false;
-            }*/
-            loginOk = false;
+            } catch (SQLException ex) {
+                Logger.getLogger(AuthServlet.class.getName()).log(Level.SEVERE, null, ex);
+                loginOk = false;
+            }
         }
 
         if (req.getParameter("logout") != null) {
@@ -74,8 +81,8 @@ public class AuthServlet extends HttpServlet {
             User u = null;
 
             if (session.getAttribute("ssid") != null) {
-                u = AbstractAuthorizedServlet.SESSION_IDENTIFIERS.get(session.getAttribute("ssid"));
-                AbstractAuthorizedServlet.SESSION_IDENTIFIERS.remove(session.getAttribute("ssid"));
+                u = AbstractAuthorizedServlet.SESSION_IDENTIFIERS.get((String)session.getAttribute("ssid"));
+                AbstractAuthorizedServlet.SESSION_IDENTIFIERS.remove((String)session.getAttribute("ssid"));
             }
 
             session.setAttribute("loggedin", "false");
