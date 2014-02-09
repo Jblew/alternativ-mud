@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.App;
+import net.alternativmud.Config;
 import net.alternativmud.StaticConfig;
 import net.alternativmud.framework.ExternalService;
 import net.alternativmud.lib.NamingThreadFactory;
@@ -72,6 +73,11 @@ public class TCPEBusServer implements ExternalService {
     public TCPEBusServer(EventBus globalEBus) {
         this.globalEBus = globalEBus;
         this.ebusTimeoutMs = App.getApp().getConfig().getTcpEBusTimeoutMs();
+    }
+    
+    public TCPEBusServer(EventBus globalEBus, Config config) {
+        this.globalEBus = globalEBus;
+        this.ebusTimeoutMs = config.getTcpEBusTimeoutMs();
     }
 
     public void start() throws IOException {

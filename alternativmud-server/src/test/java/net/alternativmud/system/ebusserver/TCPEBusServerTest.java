@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import net.alternativmud.Config;
 import net.alternativmud.lib.debug.BusLogger;
 
 /**
@@ -99,7 +100,7 @@ public class TCPEBusServerTest extends TestCase {
         globalBus.register(new BusLogger());
 
 
-        TCPEBusServer ebusServer = new TCPEBusServer(globalBus);
+        TCPEBusServer ebusServer = new TCPEBusServer(globalBus, new Config());
         ebusServer.start();
 
         assertTrue("EBusServer is not bind", ebusServer.isBind());
@@ -156,7 +157,7 @@ public class TCPEBusServerTest extends TestCase {
         globalBus.register(new BusLogger());
 
 
-        final TCPEBusServer ebusServer = new TCPEBusServer(globalBus);
+        final TCPEBusServer ebusServer = new TCPEBusServer(globalBus, new Config());
         ebusServer.start();
         NetworkBusClient clientSideBusEnd = new NetworkBusClient(new InetSocketAddress("127.0.0.1", ebusServer.getPort()));
         ExecutorService executor = Executors.newSingleThreadExecutor();

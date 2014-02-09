@@ -5,15 +5,19 @@
 package net.alternativmud.system.bootstrap;
 
 import java.io.*;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.App;
+import net.alternativmud.game3d.UnityScenes;
 import net.alternativmud.lib.NamingThreadFactory;
+import net.alternativmud.logic.world.characters.UCharacter;
 import net.alternativmud.system.lifecycle.RunnableTask;
 import net.alternativmud.system.remoteadmin.RemoteAdminServer;
+import net.alternativmud.system.unityserver.Unity3DModeSubscriber;
 
 /**
  *
@@ -39,7 +43,6 @@ public class StartConsoleReader implements RunnableTask {
         final PushbackReader pushback = new PushbackReader(new InputStreamReader(System.in));
         final BufferedReader reader = new BufferedReader(pushback);
 
-
         executor.execute(new Runnable() {
 
             @Override
@@ -50,8 +53,47 @@ public class StartConsoleReader implements RunnableTask {
                         String cmd = reader.readLine();
                         if (cmd.equals("stop")) {
                             App.getApp().getLifecycle().shutdown();
+                        } else if (cmd.startsWith("setvar")) {
+                            String[] parts = cmd.split(" ");
+                            if (parts.length == 3) {
+                                App.getApp().getVariablesManager().setValue(parts[1], parts[2]);
+                                for (byte dstSceneID : UnityScenes.getScenesUsingVariable(parts[1])) {
+                                    if (App.getApp().getUnityBusCharacterPool().charactersInScenes.containsKey(dstSceneID)) {
+                                        Map<Byte, UCharacter> charactersInScene = App.getApp().getUnityBusCharacterPool().charactersInScenes.get(dstSceneID);
+                                        for (byte sceneCharacterID : charactersInScene.keySet()) {
+                                            if (App.getApp().getUnityBusCharacterPool().characterBuses.containsKey(charactersInScene.get(sceneCharacterID))) {
+                                                App.getApp().getUnityBusCharacterPool().characterBuses.get(charactersInScene.get(sceneCharacterID)).post(new Unity3DModeSubscriber.VariableChanged(parts[1], parts[2]));
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                System.out.println("[>] 'setvar' usage: setvar [key] [value]");
+                            }
+                        } else if (cmd.startsWith("_setvar")) {
+                            try {
+                                TimeUnit.SECONDS.sleep(2);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(StartConsoleReader.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            String[] parts = cmd.split(" ");
+                            if (parts.length == 3) {
+                                App.getApp().getVariablesManager().setValue(parts[1], parts[2]);
+                                for (byte dstSceneID : UnityScenes.getScenesUsingVariable(parts[1])) {
+                                    if (App.getApp().getUnityBusCharacterPool().charactersInScenes.containsKey(dstSceneID)) {
+                                        Map<Byte, UCharacter> charactersInScene = App.getApp().getUnityBusCharacterPool().charactersInScenes.get(dstSceneID);
+                                        for (byte sceneCharacterID : charactersInScene.keySet()) {
+                                            if (App.getApp().getUnityBusCharacterPool().characterBuses.containsKey(charactersInScene.get(sceneCharacterID))) {
+                                                App.getApp().getUnityBusCharacterPool().characterBuses.get(charactersInScene.get(sceneCharacterID)).post(new Unity3DModeSubscriber.VariableChanged(parts[1], parts[2]));
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                System.out.println("[>] 'setvar' usage: setvar [key] [value]");
+                            }
                         } else {
-                            System.out.println("Unrecognized command: '" + cmd + "'");
+                            System.out.println("[>] Unrecognized command: '" + cmd + "'");
                         }
                         try {
                             TimeUnit.MILLISECONDS.sleep(10);
