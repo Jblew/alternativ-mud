@@ -120,7 +120,10 @@ class H2SQLPersistenceProvider implements PersistenceProvider {
             try {
                 getValueStatement.setString(1, key);
                 try (ResultSet rs = getValueStatement.executeQuery()) {
-                    return rs.getString(1);
+                    if(rs.next()) {
+                        return rs.getString(1);
+                    }
+                    else return null;
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(H2SQLPersistenceProvider.class.getName()).log(Level.SEVERE, null, ex);
