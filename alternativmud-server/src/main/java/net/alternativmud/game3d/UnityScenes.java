@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * @author teofil
  */
 public class UnityScenes {
-    private static final Map<String, String []> variablesScenes;
+    private static final Map<String, byte []> variablesScenes;
     //No more scenes than Byte.MAX_VALUE!
     public static final Scene [] SCENES = new Scene [] {
         new Scene("ElegantRoom", new String [] {}),
@@ -27,23 +27,23 @@ public class UnityScenes {
     };
     
     static {
-        Map<String, List<String>> tmp = new HashMap<String, List<String>>();
+        Map<String, List<Byte>> tmp = new HashMap<String, List<Byte>>();
         for(Scene s : SCENES) {
             for(String variable : s.getVariables()) {
                 if(tmp.containsKey(variable)) {
-                    tmp.get(variable).add(s.getName());
+                    tmp.get(variable).add(getSceneID(s.getName()));
                 }
                 else {
-                    List<String> list = new ArrayList<String>();
-                    list.add(s.getName());
+                    List<Byte> list = new ArrayList<Byte>();
+                    list.add(getSceneID(s.getName()));
                     tmp.put(variable, list);
                 }
             }
         }
         
-        variablesScenes = new HashMap<String, String[]>();
+        variablesScenes = new HashMap<String, byte[]>();
         for(String variable : tmp.keySet()) {
-            String [] scenes = new String[tmp.get(variable).size()];
+            byte [] scenes = new byte[tmp.get(variable).size()];
             for(int i = 0;i < tmp.get(variable).size();i++) {
                 scenes[i] = tmp.get(variable).get(i);
             }
@@ -65,7 +65,7 @@ public class UnityScenes {
         else throw new NoSuchElementException("Scene "+name);
     }
     
-    public static String[] getScenesUsingVariable(String key) {
+    public static byte[] getScenesUsingVariable(String key) {
         return variablesScenes.get(key);
     }
     
