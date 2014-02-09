@@ -24,6 +24,12 @@ public class VariablesManager {
     
     public void init() {
         persistenceProvider.connect(config.getDriverClass(), config.getUrl());
+        
+        for(String key : DefaultVariables.VARIABLES.keySet()) {
+            String value = DefaultVariables.VARIABLES.get(key);
+            persistenceProvider.setValue(key, value);
+        }
+        
         initialized.set(true);
     }
     

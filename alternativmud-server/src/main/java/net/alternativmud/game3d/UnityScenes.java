@@ -21,9 +21,9 @@ public class UnityScenes {
     //No more scenes than Byte.MAX_VALUE!
     public static final Scene [] SCENES = new Scene [] {
         new Scene("ElegantRoom", new String [] {}),
-        new Scene("Passage", new String [] {}),
-        new Scene("Train", new String [] {}),
-        new Scene("Store", new String [] {})
+        new Scene("Passage", new String [] {"global.power"}),
+        new Scene("Train", new String [] {"global.power"}),
+        new Scene("Store", new String [] {"global.power"})
     };
     
     static {

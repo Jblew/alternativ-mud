@@ -60,7 +60,7 @@ public class Unity3DModeSubscriber {
             charactersInScenes.put(sceneID, charactersInScene);
         }
         characterBuses.put(character, ebus);
-        ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(charactersInScenes.get(sceneID))));
+        ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(charactersInScenes.get(sceneID)), loadSceneVariables()));
     }
 
     @Subscribe
@@ -133,7 +133,7 @@ public class Unity3DModeSubscriber {
                 charactersInScenes.put(sceneID, charactersInScene);
             }
             characterBuses.put(character, ebus);
-            ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(charactersInScenes.get(sceneID))));
+            ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(charactersInScenes.get(sceneID)), loadSceneVariables()));
         } catch(NoSuchElementException e) {
             ebus.post(new SceneEnterFailed("No such scene on server"));
         }
@@ -150,20 +150,31 @@ public class Unity3DModeSubscriber {
             }
         }
     }
+    
+    private Map<String, String> loadSceneVariables() {
+        Map<String, String> out = new HashMap<String, String>();
+        for(String key : UnityScenes.SCENES[sceneID].getVariables()) {
+            String value = App.getApp().getVariablesManager().getValue(key);
+            out.put(key, value);
+        }
+        return out;
+    }
 
     public static class SceneEnterSucceeded {
 
         private int port;
         private byte characterID;
         private Map<Byte, UCharacter> enemies;
+        private Map<String, String> variables;
 
         public SceneEnterSucceeded() {
         }
 
-        public SceneEnterSucceeded(int port, byte characterID, Map<Byte, UCharacter> enemies) {
+        public SceneEnterSucceeded(int port, byte characterID, Map<Byte, UCharacter> enemies, Map<String, String> variables) {
             this.port = port;
             this.characterID = characterID;
             this.enemies = enemies;
+            this.variables = variables;
         }
 
         public int getPort() {
@@ -188,6 +199,14 @@ public class Unity3DModeSubscriber {
 
         public void setEnemies(Map<Byte, UCharacter> enemies) {
             this.enemies = enemies;
+        }
+
+        public Map<String, String> getVariables() {
+            return variables;
+        }
+
+        public void setVariables(Map<String, String> variables) {
+            this.variables = variables;
         }
     }
 
