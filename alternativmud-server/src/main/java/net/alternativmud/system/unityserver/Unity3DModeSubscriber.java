@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 import net.alternativmud.App;
 import net.alternativmud.framework.Service;
+import net.alternativmud.game3d.Scene;
 import net.alternativmud.game3d.UnityScenes;
 import net.alternativmud.logic.User;
 import net.alternativmud.logic.world.characters.UCharacter;
@@ -146,6 +147,21 @@ public class Unity3DModeSubscriber {
             for (byte enemyID : charactersInScene.keySet()) {
                 if (characterBuses.containsKey(charactersInScene.get(enemyID))) {
                     characterBuses.get(charactersInScene.get(enemyID)).post(new ChatMessage(evt.getMessage(), characterID, character));
+                }
+            }
+        }
+    }
+    
+    @Subscribe
+    public void changeVariable(ChangeVariable changeVariable) {
+        App.getApp().getVariablesManager().setValue(changeVariable.getKey(), changeVariable.getValue());
+        for(byte dstSceneID : UnityScenes.getScenesUsingVariable(changeVariable.getKey())) {
+            if (charactersInScenes.containsKey(dstSceneID)) {
+                Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(dstSceneID);
+                for (byte sceneCharacterID : charactersInScene.keySet()) {
+                    if (characterBuses.containsKey(charactersInScene.get(sceneCharacterID))) {
+                        characterBuses.get(charactersInScene.get(sceneCharacterID)).post(new VariableChanged(changeVariable.getKey(), changeVariable.getValue()));
+                    }
                 }
             }
         }
@@ -434,6 +450,64 @@ public class Unity3DModeSubscriber {
 
         public void setMessage(String message) {
             this.message = message;
+        }
+    }
+    
+    public static class ChangeVariable {
+        private String key;
+        private String value;
+
+        public ChangeVariable() {
+        }
+
+        public ChangeVariable(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
+        }
+    }
+    
+    public static class VariableChanged {
+        private String key;
+        private String value;
+
+        public VariableChanged() {
+        }
+
+        public VariableChanged(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public void setValue(String value) {
+            this.value = value;
         }
     }
 }
