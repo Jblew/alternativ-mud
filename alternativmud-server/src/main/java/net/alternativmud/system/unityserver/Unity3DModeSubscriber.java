@@ -27,8 +27,7 @@ import net.alternativmud.system.nebus.server.TCPEBusServer;
  * @author Jędrzej Lew
  */
 public class Unity3DModeSubscriber {
-    private static final Map<Byte, Map<Byte, UCharacter>> charactersInScenes = Collections.synchronizedMap(new HashMap<Byte, Map<Byte, UCharacter>>());
-    private static final Map<UCharacter, EventBus> characterBuses = Collections.synchronizedMap(new HashMap<UCharacter, EventBus>());
+    private final UnityBusCharacterPool pool;
     private final UnityServer unityServer;
     private final EventBus ebus;
     private final UCharacter character;
@@ -37,6 +36,7 @@ public class Unity3DModeSubscriber {
     private byte characterID;
 
     public Unity3DModeSubscriber(UnityServer unityServer, EventBus ebus, User user, UCharacter character, byte sceneID) {
+        this.pool = App.getApp().getUnityBusCharacterPool();
         this.unityServer = unityServer;
         this.ebus = ebus;
         this.user = user;
@@ -46,22 +46,22 @@ public class Unity3DModeSubscriber {
         characterID = unityServer.addCharacterToScene(sceneID, character.getName());
         int port = unityServer.getPort()+sceneID;
 
-        if(charactersInScenes.containsKey(sceneID)) {
-            Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
+        if(pool.charactersInScenes.containsKey(sceneID)) {
+            Map<Byte, UCharacter> charactersInScene = pool.charactersInScenes.get(sceneID);
             charactersInScene.put(characterID, character);
 
             for(byte enemyID : charactersInScene.keySet()) {
-                if(characterBuses.containsKey(charactersInScene.get(enemyID))) {
-                    characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(characterID, character));
+                if(pool.characterBuses.containsKey(charactersInScene.get(enemyID))) {
+                    pool.characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(characterID, character));
                 }
             }
         } else {
             Map<Byte, UCharacter> charactersInScene = Collections.synchronizedMap(new HashMap<Byte, UCharacter>());
             charactersInScene.put(characterID, character);
-            charactersInScenes.put(sceneID, charactersInScene);
+            pool.charactersInScenes.put(sceneID, charactersInScene);
         }
-        characterBuses.put(character, ebus);
-        ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(charactersInScenes.get(sceneID)), loadSceneVariables()));
+        pool.characterBuses.put(character, ebus);
+        ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(pool.charactersInScenes.get(sceneID)), loadSceneVariables()));
     }
 
     @Subscribe
@@ -69,27 +69,27 @@ public class Unity3DModeSubscriber {
         Logger.getLogger(getClass().getName()).info("Ebus of " + user.getLogin() + ":" + character.getName() + " closed. Unregistering Unity3DModeSubscriber, removing character from UnityServer");
         unityServer.removeCharacterFromScene(sceneID, character.getName());
 
-        if (charactersInScenes.containsKey(sceneID)) {
-            Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
+        if (pool.charactersInScenes.containsKey(sceneID)) {
+            Map<Byte, UCharacter> charactersInScene = pool.charactersInScenes.get(sceneID);
             charactersInScene.remove(characterID);
 
             for (byte enemyID : charactersInScene.keySet()) {
-                if (characterBuses.containsKey(charactersInScene.get(enemyID)) && enemyID != characterID) {
-                    characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyLeft(enemyID, charactersInScene.get(enemyID)));
+                if (pool.characterBuses.containsKey(charactersInScene.get(enemyID)) && enemyID != characterID) {
+                    pool.characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyLeft(enemyID, charactersInScene.get(enemyID)));
                 }
             }
         }
 
-        characterBuses.remove(character);
+        pool.characterBuses.remove(character);
 
         ebus.unregister(this);
     }
 
     @Subscribe
     public void describeCharacter(DescribeCharacter evt) {
-        if (charactersInScenes.containsKey(sceneID)) {
-            if (charactersInScenes.get(sceneID).containsKey(evt.characterID)) {
-                ebus.post(new CharacterDescription(evt.characterID, charactersInScenes.get(sceneID).get(evt.characterID)));
+        if (pool.charactersInScenes.containsKey(sceneID)) {
+            if (pool.charactersInScenes.get(sceneID).containsKey(evt.characterID)) {
+                ebus.post(new CharacterDescription(evt.characterID, pool.charactersInScenes.get(sceneID).get(evt.characterID)));
             } else {
                 ebus.post(new CouldNotDescribeCharacter(evt.characterID));
             }
@@ -103,13 +103,13 @@ public class Unity3DModeSubscriber {
         try {
             byte newSceneID = UnityScenes.getSceneID(evt.getSceneName());
             unityServer.removeCharacterFromScene(sceneID, character.getName());
-            if(charactersInScenes.containsKey(sceneID)) {
-                Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
+            if(pool.charactersInScenes.containsKey(sceneID)) {
+                Map<Byte, UCharacter> charactersInScene = pool.charactersInScenes.get(sceneID);
                 charactersInScene.remove(characterID);
 
                 for (byte enemyID : charactersInScene.keySet()) {
-                    if (characterBuses.containsKey(charactersInScene.get(enemyID)) && enemyID != characterID) {
-                        characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyLeft(characterID, character));
+                    if (pool.characterBuses.containsKey(charactersInScene.get(enemyID)) && enemyID != characterID) {
+                        pool.characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyLeft(characterID, character));
                     }
                 }
             }
@@ -119,22 +119,22 @@ public class Unity3DModeSubscriber {
             characterID = unityServer.addCharacterToScene(sceneID, character.getName());
             int port = unityServer.getPort() + sceneID;
 
-            if (charactersInScenes.containsKey(sceneID)) {
-                Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
+            if (pool.charactersInScenes.containsKey(sceneID)) {
+                Map<Byte, UCharacter> charactersInScene = pool.charactersInScenes.get(sceneID);
                 charactersInScene.put(characterID, character);
 
                 for (byte enemyID : charactersInScene.keySet()) {
-                    if (characterBuses.containsKey(charactersInScene.get(enemyID))) {
-                        characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(characterID, character));
+                    if (pool.characterBuses.containsKey(charactersInScene.get(enemyID))) {
+                        pool.characterBuses.get(charactersInScene.get(enemyID)).post(new EnemyArrived(characterID, character));
                     }
                 }
             } else {
                 Map<Byte, UCharacter> charactersInScene = Collections.synchronizedMap(new HashMap<Byte, UCharacter>());
                 charactersInScene.put(characterID, character);
-                charactersInScenes.put(sceneID, charactersInScene);
+                pool.charactersInScenes.put(sceneID, charactersInScene);
             }
-            characterBuses.put(character, ebus);
-            ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(charactersInScenes.get(sceneID)), loadSceneVariables()));
+            pool.characterBuses.put(character, ebus);
+            ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(pool.charactersInScenes.get(sceneID)), loadSceneVariables()));
         } catch(NoSuchElementException e) {
             ebus.post(new SceneEnterFailed("No such scene on server"));
         }
@@ -142,11 +142,11 @@ public class Unity3DModeSubscriber {
 
     @Subscribe
     public void postChatMessage(PostChatMessage evt) {
-        if (charactersInScenes.containsKey(sceneID)) {
-            Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(sceneID);
+        if (pool.charactersInScenes.containsKey(sceneID)) {
+            Map<Byte, UCharacter> charactersInScene = pool.charactersInScenes.get(sceneID);
             for (byte enemyID : charactersInScene.keySet()) {
-                if (characterBuses.containsKey(charactersInScene.get(enemyID))) {
-                    characterBuses.get(charactersInScene.get(enemyID)).post(new ChatMessage(evt.getMessage(), characterID, character));
+                if (pool.characterBuses.containsKey(charactersInScene.get(enemyID))) {
+                    pool.characterBuses.get(charactersInScene.get(enemyID)).post(new ChatMessage(evt.getMessage(), characterID, character));
                 }
             }
         }
@@ -156,11 +156,11 @@ public class Unity3DModeSubscriber {
     public void changeVariable(ChangeVariable changeVariable) {
         App.getApp().getVariablesManager().setValue(changeVariable.getKey(), changeVariable.getValue());
         for(byte dstSceneID : UnityScenes.getScenesUsingVariable(changeVariable.getKey())) {
-            if (charactersInScenes.containsKey(dstSceneID)) {
-                Map<Byte, UCharacter> charactersInScene = charactersInScenes.get(dstSceneID);
+            if (pool.charactersInScenes.containsKey(dstSceneID)) {
+                Map<Byte, UCharacter> charactersInScene = pool.charactersInScenes.get(dstSceneID);
                 for (byte sceneCharacterID : charactersInScene.keySet()) {
-                    if (characterBuses.containsKey(charactersInScene.get(sceneCharacterID))) {
-                        characterBuses.get(charactersInScene.get(sceneCharacterID)).post(new VariableChanged(changeVariable.getKey(), changeVariable.getValue()));
+                    if (pool.characterBuses.containsKey(charactersInScene.get(sceneCharacterID))) {
+                        pool.characterBuses.get(charactersInScene.get(sceneCharacterID)).post(new VariableChanged(changeVariable.getKey(), changeVariable.getValue()));
                     }
                 }
             }

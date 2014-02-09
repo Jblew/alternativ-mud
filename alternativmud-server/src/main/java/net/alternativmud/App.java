@@ -21,6 +21,7 @@ import net.alternativmud.logic.User;
 import net.alternativmud.logic.world.World;
 import net.alternativmud.system.bootstrap.*;
 import net.alternativmud.system.lifecycle.Lifecycle;
+import net.alternativmud.system.unityserver.UnityBusCharacterPool;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonController;
 import org.apache.commons.daemon.DaemonInitException;
@@ -45,6 +46,7 @@ public class App {
     private final DBEntitiesManager entitiesManager;
     private final VariablesManager variablesManager;
     private final GamesManager gamesManager;
+    private final UnityBusCharacterPool unityBusCharacterPool;
     private final Config config;
     private final World world;
 
@@ -82,6 +84,7 @@ public class App {
         variablesManager = new VariablesManager(config.getVariablesConfig());
         gamesManager = new GamesManager();
         world = new World(config, persistenceManager, entitiesManager);
+        unityBusCharacterPool = new UnityBusCharacterPool();
 
         //initialize tasks
         lifecycle.registerBootstrapTask(new InitBusDebug());
@@ -173,6 +176,10 @@ public class App {
 
     public World getWorld() {
         return world;
+    }
+
+    public UnityBusCharacterPool getUnityBusCharacterPool() {
+        return unityBusCharacterPool;
     }
 
     public static App getApp() {
