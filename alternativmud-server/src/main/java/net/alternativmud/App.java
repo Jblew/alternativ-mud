@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.db.DBEntitiesManager;
+import net.alternativmud.db.variables.VariablesManager;
 import net.alternativmud.framework.ServiceManager;
 import net.alternativmud.lib.IdManager;
 import net.alternativmud.lib.persistence.FilePersistenceProvider;
@@ -42,6 +43,7 @@ public class App {
     private final PersistenceManager persistenceManager;
     private final IdManager idManager;
     private final DBEntitiesManager entitiesManager;
+    private final VariablesManager variablesManager;
     private final GamesManager gamesManager;
     private final Config config;
     private final World world;
@@ -77,6 +79,7 @@ public class App {
         persistenceManager = new PersistenceManager(new FilePersistenceProvider());
         idManager = new IdManager();
         entitiesManager = new DBEntitiesManager(config);
+        variablesManager = new VariablesManager(config.getVariablesConfig());
         gamesManager = new GamesManager();
         world = new World(config, persistenceManager, entitiesManager);
 
@@ -91,6 +94,7 @@ public class App {
         //initialize resources
         lifecycle.registerBootstrapTask(new InitPersistence());
         lifecycle.registerBootstrapTask(new ConnectToDatabase());
+        lifecycle.registerBootstrapTask(new InitVariablesManager());
         
         //start tasks
         lifecycle.registerBootstrapTask(new StartRemoteAdminServer());
@@ -153,6 +157,10 @@ public class App {
 
     public DBEntitiesManager getEntitiesManager() {
         return entitiesManager;
+    }
+
+    public VariablesManager getVariablesManager() {
+        return variablesManager;
     }
 
     public GamesManager getGamesManager() {

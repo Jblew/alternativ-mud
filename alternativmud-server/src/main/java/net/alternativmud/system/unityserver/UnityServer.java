@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.App;
 import net.alternativmud.framework.ExternalService;
+import net.alternativmud.game3d.Scene;
 import net.alternativmud.game3d.UnityScenes;
 import net.alternativmud.lib.NamingThreadFactory;
 
@@ -42,7 +43,7 @@ public class UnityServer implements ExternalService {
         this.eBus = eBus;
         
         for (byte i = 0; i < sceneDataManagers.length; i++) {
-            sceneDataManagers[i] = new SceneDataManager(UnityScenes.SCENES[i], i);
+            sceneDataManagers[i] = new SceneDataManager(UnityScenes.SCENES[i].getName(), i);
         }
     }
 
@@ -77,7 +78,7 @@ public class UnityServer implements ExternalService {
     public synchronized void start() {
         int portIncrementer = getPort();
         int sceneIDIncrementer = 0;
-        for (final String sceneName_ : UnityScenes.SCENES) {
+        for (final Scene scene : UnityScenes.SCENES) {
             final int port_ = portIncrementer;
             portIncrementer++;
             
@@ -89,7 +90,7 @@ public class UnityServer implements ExternalService {
                 public void run() {
                     int port = port_;
                     int sceneID = sceneID_;
-                    String sceneName = sceneName_;
+                    String sceneName = scene.getName();
                     
                     DatagramSocket serverSocket = null;
                     byte[] receiveData = new byte[512];

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.db.DBEntitiesManager.DatabaseConfig;
+import net.alternativmud.db.variables.VariablesManager;
 import net.alternativmud.system.web.WebServer;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -29,6 +30,7 @@ public class Config {
     private long tcpEBusTimeoutMs = 1/*m*/*60/*s*/*1000/*ms*/;
     private DatabaseConfig databaseConfig = new DatabaseConfig();
     private WebServer.WebServerConfig webServerConfig = new WebServer.WebServerConfig();
+    private VariablesManager.VariablesConfig variablesConfig = new VariablesManager.VariablesConfig();
     private String httpSessionSalt = "f3g45egrv34%#$%G#vrtfdsv^R$brrbTTYGT135";
 
     public String[] getNtpServers() {
@@ -63,6 +65,14 @@ public class Config {
         this.webServerConfig = webServerConfig;
     }
 
+    public VariablesManager.VariablesConfig getVariablesConfig() {
+        return variablesConfig;
+    }
+
+    public void setVariablesConfig(VariablesManager.VariablesConfig variablesConfig) {
+        this.variablesConfig = variablesConfig;
+    }
+    
     public String getHttpSessionSalt() {
         return httpSessionSalt;
     }

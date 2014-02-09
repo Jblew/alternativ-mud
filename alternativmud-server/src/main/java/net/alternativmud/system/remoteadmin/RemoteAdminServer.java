@@ -74,7 +74,7 @@ public class RemoteAdminServer implements ExternalService {
 
     @Override
     public int getPort() {
-        return 9999;
+        return 10001;
     }
 
     @Override
