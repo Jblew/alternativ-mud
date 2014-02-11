@@ -43,7 +43,7 @@ public class TCPEBusServerTest extends TestCase {
         EventBus globalBus = new EventBus("global");
         globalBus.register(new BusLogger());
 
-        TCPEBusServer ebusServer = new TCPEBusServer(globalBus);
+        TCPEBusServer ebusServer = new TCPEBusServer(globalBus, new Config());
         ebusServer.start();
 
         assertTrue("EBusServer is not bind", ebusServer.isBind());
@@ -182,7 +182,7 @@ public class TCPEBusServerTest extends TestCase {
         globalBus.register(new BusLogger());
 
 
-        final TCPEBusServer ebusServer = new TCPEBusServer(globalBus);
+        final TCPEBusServer ebusServer = new TCPEBusServer(globalBus, new Config());
         ebusServer.start();
         final NetworkBusClient clientSideBusEnd = new NetworkBusClient(new InetSocketAddress("127.0.0.1", ebusServer.getPort()));
         ExecutorService executor = Executors.newSingleThreadExecutor();
