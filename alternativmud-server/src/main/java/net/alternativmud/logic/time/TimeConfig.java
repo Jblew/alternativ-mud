@@ -16,7 +16,7 @@ import java.util.GregorianCalendar;
 public class TimeConfig {
     private String [] ntpServers = new String [] {"tempus1.gum.gov.pl", "tempus2.gum.gov.pl"};
     private int timeSynchronizationFrequencyMs = 60*60*1000; // 1 hours
-    private Date year1970Date = new GregorianCalendar(2200, 01, 01).getTime();
+    private int yearCorrection = 75;
 
     public String[] getNtpServers() {
         return ntpServers;
@@ -34,11 +34,11 @@ public class TimeConfig {
         this.timeSynchronizationFrequencyMs = timeSynchronizationFrequencyMs;
     }
 
-    public Date getYear1970Date() {
-        return year1970Date;
+    public int getYearCorrection() {
+        return yearCorrection;
     }
 
-    public void setYear1970Date(Date year1970Date) {
-        this.year1970Date = year1970Date;
+    public void setYearCorrection(int yearCorrection) {
+        this.yearCorrection = yearCorrection;
     }
 }

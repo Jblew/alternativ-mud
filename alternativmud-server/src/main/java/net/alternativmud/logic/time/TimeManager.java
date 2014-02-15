@@ -6,6 +6,9 @@
 
 package net.alternativmud.logic.time;
 
+import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.alternativmud.Config;
 
 /**
@@ -22,8 +25,8 @@ public class TimeManager {
         this.config = config.getTimeConfig();
         //precisionTimer = new NtpPrecisionTimer(this.config.getNtpServers(), new TimeValue(this.config.getTimeSynchronizationFrequencyMs(), TimeUnit.MILLISECONDS));
         this.constructLocalTime = System.currentTimeMillis();
-        this.gameTimeCorrection = this.config.getYear1970Date().getTime();
-
+        this.gameTimeCorrection = ((long)this.config.getYearCorrection())*365l*24l*3600l*1000l+((long)Math.floor(((double)this.config.getYearCorrection())/4d))*24l*3600l*1000l;
+        Logger.getLogger(TimeManager.class.getName()).log(Level.INFO, "StartedTimeManager, Current time in game: {0} (correction: {1})", new Object [] {new Date(getGameTime()).toString(), this.gameTimeCorrection});
     }
 
     public long getConstructTime() {
