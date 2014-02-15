@@ -61,7 +61,7 @@ public class Unity3DModeSubscriber {
             pool.charactersInScenes.put(sceneID, charactersInScene);
         }
         pool.characterBuses.put(character, ebus);
-        ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(pool.charactersInScenes.get(sceneID)), loadSceneVariables()));
+        ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(pool.charactersInScenes.get(sceneID)), loadSceneVariables(), App.getApp().getTimeManager().getGameTime()));
     }
 
     @Subscribe
@@ -134,7 +134,7 @@ public class Unity3DModeSubscriber {
                 pool.charactersInScenes.put(sceneID, charactersInScene);
             }
             pool.characterBuses.put(character, ebus);
-            ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(pool.charactersInScenes.get(sceneID)), loadSceneVariables()));
+            ebus.post(new SceneEnterSucceeded(port, characterID, Collections.unmodifiableMap(pool.charactersInScenes.get(sceneID)), loadSceneVariables(), App.getApp().getTimeManager().getGameTime()));
         } catch(NoSuchElementException e) {
             ebus.post(new SceneEnterFailed("No such scene on server"));
         }
@@ -177,20 +177,21 @@ public class Unity3DModeSubscriber {
     }
 
     public static class SceneEnterSucceeded {
-
         private int port;
         private byte characterID;
         private Map<Byte, UCharacter> enemies;
         private Map<String, String> variables;
+        private long timeInGame;
 
         public SceneEnterSucceeded() {
         }
 
-        public SceneEnterSucceeded(int port, byte characterID, Map<Byte, UCharacter> enemies, Map<String, String> variables) {
+        public SceneEnterSucceeded(int port, byte characterID, Map<Byte, UCharacter> enemies, Map<String, String> variables, long timeInGame) {
             this.port = port;
             this.characterID = characterID;
             this.enemies = enemies;
             this.variables = variables;
+            this.timeInGame = timeInGame;
         }
 
         public int getPort() {
@@ -223,6 +224,14 @@ public class Unity3DModeSubscriber {
 
         public void setVariables(Map<String, String> variables) {
             this.variables = variables;
+        }
+
+        public long getTimeInGame() {
+            return timeInGame;
+        }
+
+        public void setTimeInGame(long timeInGame) {
+            this.timeInGame = timeInGame;
         }
     }
 

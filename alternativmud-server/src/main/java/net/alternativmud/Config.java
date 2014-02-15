@@ -88,6 +88,7 @@ public class Config {
         JSON_MAPPER.setSerializationConfig(JSON_MAPPER.getSerializationConfig()
                 .without(SerializationConfig.Feature.FAIL_ON_EMPTY_BEANS))
                 .enable(SerializationConfig.Feature.INDENT_OUTPUT);
+        JSON_MAPPER.configure(SerializationConfig.Feature.WRITE_DATES_AS_TIMESTAMPS, false);
     }
     
     public void save(String configFile) {
