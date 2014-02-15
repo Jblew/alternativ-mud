@@ -10,4 +10,5 @@ package net.alternativmud.logic.time;
  */
 public interface PrecisionTimer{
     public long getCurrentTimeMillis();
+    public boolean isSynchronized();
 }

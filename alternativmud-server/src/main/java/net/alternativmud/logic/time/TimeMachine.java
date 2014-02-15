@@ -19,7 +19,7 @@ public class TimeMachine {
     private Config config;
     private DateTime dateTime = new DateTime();
     public TimeMachine(net.alternativmud.Config globalConfig) {
-        config = new Config(globalConfig.getNtpServers());
+        config = new Config(globalConfig.getTimeConfig().getNtpServers());
     }
 
     public Config getConfig() {

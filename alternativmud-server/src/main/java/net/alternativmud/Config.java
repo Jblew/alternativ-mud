@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.alternativmud.db.DBEntitiesManager.DatabaseConfig;
 import net.alternativmud.db.variables.VariablesManager;
+import net.alternativmud.logic.time.TimeConfig;
 import net.alternativmud.system.web.WebServer;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -23,23 +24,12 @@ import org.codehaus.jackson.map.SerializationConfig;
  */
 
 public class Config {
-    private String [] ntpServers = new String [] {
-        "tempus1.gum.gov.pl",
-        "tempus2.gum.gov.pl"
-    };
     private long tcpEBusTimeoutMs = 1/*m*/*60/*s*/*1000/*ms*/;
     private DatabaseConfig databaseConfig = new DatabaseConfig();
     private WebServer.WebServerConfig webServerConfig = new WebServer.WebServerConfig();
     private VariablesManager.VariablesConfig variablesConfig = new VariablesManager.VariablesConfig();
     private String httpSessionSalt = "f3g45egrv34%#$%G#vrtfdsv^R$brrbTTYGT135";
-
-    public String[] getNtpServers() {
-        return ntpServers;
-    }
-
-    public void setNtpServers(String[] ntpServers) {
-        this.ntpServers = ntpServers;
-    }
+    private TimeConfig timeConfig = new TimeConfig();
 
     public long getTcpEBusTimeoutMs() {
         return tcpEBusTimeoutMs;
@@ -79,6 +69,14 @@ public class Config {
 
     public void setHttpSessionSalt(String httpSessionSalt) {
         this.httpSessionSalt = httpSessionSalt;
+    }
+
+    public TimeConfig getTimeConfig() {
+        return timeConfig;
+    }
+
+    public void setTimeConfig(TimeConfig timeConfig) {
+        this.timeConfig = timeConfig;
     }
     
     /**

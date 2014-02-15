@@ -27,6 +27,11 @@ public class LocalTimeAcceleratingTimestamp {
                 return System.currentTimeMillis();
             }
 
+            @Override
+            public boolean isSynchronized() {
+                return true;
+            }
+
         }, 0, 1);
     }
 

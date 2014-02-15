@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -27,6 +28,7 @@ public class NtpPrecisionTimer implements PrecisionTimer {
     private final String[] ntpServers;
     private final TimeValue synchronizationFrequency;
     private final AtomicReference<TimeFlag> synchronizeFlag = new AtomicReference<>(new TimeFlag(TimeValue.valueOf("1ms")));
+    private final AtomicBoolean isSynchronized = new AtomicBoolean(false);
     public NtpPrecisionTimer(String[] ntpServers, TimeValue synchronizationFrequency) {
         this.ntpServers = ntpServers;
         this.synchronizationFrequency = synchronizationFrequency;
@@ -54,6 +56,7 @@ public class NtpPrecisionTimer implements PrecisionTimer {
                                 info.computeDetails();
                                 Long offsetValue = info.getOffset();
                                 msCorrection.set(offsetValue);
+                                isSynchronized.set(true);
                                 gotTime = true;
                                 Logger.getLogger(NtpPrecisionTimer.class.getName()).info("Successfully synchronied time with " + addr + ". Currect correction: " + msCorrection.get());
                                 break;
@@ -99,4 +102,7 @@ public class NtpPrecisionTimer implements PrecisionTimer {
         return unit.convert(getCorrectionMs(), TimeUnit.MILLISECONDS);
     }
 
+    public boolean isSynchronized() {
+        return isSynchronized.get();
+    }
 }

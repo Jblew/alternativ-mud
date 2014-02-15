@@ -18,6 +18,8 @@ import net.alternativmud.lib.persistence.FilePersistenceProvider;
 import net.alternativmud.lib.persistence.PersistenceManager;
 import net.alternativmud.logic.GamesManager;
 import net.alternativmud.logic.User;
+import net.alternativmud.logic.time.PrecisionTimer;
+import net.alternativmud.logic.time.TimeManager;
 import net.alternativmud.logic.world.World;
 import net.alternativmud.system.bootstrap.*;
 import net.alternativmud.system.lifecycle.Lifecycle;
@@ -49,6 +51,7 @@ public class App {
     private final UnityBusCharacterPool unityBusCharacterPool;
     private final Config config;
     private final World world;
+    private final TimeManager timeManager;
 
     public App(String configFile) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, IOException {
         try {
@@ -75,6 +78,8 @@ public class App {
                 config = new Config();
             }
         }
+        
+        timeManager = new TimeManager(config);
         
         lifecycle = new Lifecycle(systemBus);
         serviceManager = new ServiceManager(systemBus);
@@ -136,6 +141,10 @@ public class App {
      */
     public void start() {
         lifecycle.bootstrap();
+    }
+
+    public TimeManager getTimeManager() {
+        return timeManager;
     }
 
     public EventBus getSystemEventBus() {
