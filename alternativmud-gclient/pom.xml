@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>11.0.2</version>
+            <version>30.0-android</version>
         </dependency>
         <dependency>
             <groupId>net.alternativmud</groupId>
@@ -74,8 +74,7 @@
                             <tasks>
  
                                 <echo>Rename jar-with-dependencies</echo>
-                                <move file="${project.build.directory}/alternativmud-gclient-${project.version}-jar-with-dependencies.jar"
-                                      tofile="${project.build.directory}/../latest-alternativmud-gclient.jar"/>
+                                <move file="${project.build.directory}/alternativmud-gclient-${project.version}-jar-with-dependencies.jar" tofile="${project.build.directory}/../latest-alternativmud-gclient.jar"/>
                             </tasks>
                         </configuration>
                         <goals>
